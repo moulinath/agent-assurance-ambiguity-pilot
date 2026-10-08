@@ -1,0 +1,1355 @@
+task_id,repeat,arm,ground_truth_correct,oracle_failure_kind,oracle_failed_cases,code_under_test
+T02,1,ambiguous,False,behavior,"(1,10,10,20): expected False, got True | (1,5,5,5): expected False, got True","def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Determine whether two coverage periods overlap.
+
+    Each coverage period is defined as [start, end], inclusive of both endpoints.
+    Returns True if there is any day that is covered by both policies.
+
+    Assumes:
+        - a_start <= a_end
+        - b_start <= b_end
+        - Inputs are comparable (e.g., dates, ints, etc.)
+
+    Overlap condition for closed intervals:
+        [a_start, a_end] and [b_start, b_end] overlap iff:
+            a_start <= b_end and b_start <= a_end
+    """"""
+    return a_start <= b_end and b_start <= a_end"
+T02,2,ambiguous,False,behavior,"(1,10,10,20): expected False, got True | (1,5,5,5): expected False, got True","def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Determine if two coverage periods overlap.
+
+    Assumptions:
+    - Each coverage period is inclusive of both start and end.
+    - a_start <= a_end and b_start <= b_end are assumed; if not, they are normalized.
+    - Overlap exists if there is at least one day common to both periods.
+
+    Parameters:
+        a_start: Start of first coverage period (comparable type, e.g., int, date).
+        a_end:   End of first coverage period.
+        b_start: Start of second coverage period.
+        b_end:   End of second coverage period.
+
+    Returns:
+        bool: True if coverage periods overlap; False otherwise.
+    """"""
+
+    # Normalize in case inputs are reversed
+    if a_start > a_end:
+        a_start, a_end = a_end, a_start
+    if b_start > b_end:
+        b_start, b_end = b_end, b_start
+
+    # Inclusive-interval overlap check:
+    # [a_start, a_end] and [b_start, b_end] overlap if:
+    # a_start <= b_end and b_start <= a_end
+    return a_start <= b_end and b_start <= a_end"
+T02,3,ambiguous,False,behavior,"(1,10,10,20): expected False, got True | (1,5,5,5): expected False, got True","def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Return True if two coverage intervals overlap, False otherwise.
+
+    Assumptions:
+    - All inputs are comparable (e.g., ints, dates, datetimes).
+    - Coverage is inclusive on both start and end:
+      e.g., [a_start, a_end], [b_start, b_end].
+    - If an interval has start > end, it's treated as invalid and yields no overlap.
+    """"""
+
+    # Validate intervals: if an interval is ""inverted"", treat it as non-covering.
+    if a_start is None or a_end is None or b_start is None or b_end is None:
+        return False
+    if a_start > a_end or b_start > b_end:
+        return False
+
+    # Two closed intervals [a_start, a_end] and [b_start, b_end] overlap iff:
+    # max(start) <= min(end)
+    return max(a_start, b_start) <= min(a_end, b_end)"
+T02,4,ambiguous,False,behavior,"(1,10,10,20): expected False, got True | (1,5,5,5): expected False, got True","def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Determine if two coverage periods overlap.
+
+    Each coverage period is defined by a start and end value (e.g., days or dates).
+    This function treats the intervals as inclusive on both ends:
+      - Example: [1, 10] and [5, 15] overlap.
+      - Example: [1, 10] and [11, 20] do NOT overlap.
+      - Example: [5, 5] and [5, 10] DO overlap (single-day coverage).
+
+    The function is robust to unordered endpoints; if start > end for a given
+    policy, the values are normalized by swapping.
+
+    Args:
+        a_start: Start of coverage for policy A.
+        a_end: End of coverage for policy A.
+        b_start: Start of coverage for policy B.
+        b_end: End of coverage for policy B.
+
+    Returns:
+        True if the coverage periods overlap on at least one unit, False otherwise.
+    """"""
+    # Normalize intervals in case inputs are out of order
+    if a_start > a_end:
+        a_start, a_end = a_end, a_start
+    if b_start > b_end:
+        b_start, b_end = b_end, b_start
+
+    # Two inclusive intervals [a_start, a_end] and [b_start, b_end] overlap
+    # if the earliest end is >= the latest start.
+    return not (a_end < b_start or b_end < a_start)"
+T02,5,ambiguous,False,behavior,"(1,10,10,20): expected False, got True | (1,5,5,5): expected False, got True","def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Determine whether two coverage periods overlap.
+
+    Assumptions:
+    - a_start, a_end, b_start, b_end are comparable (e.g., dates or numbers).
+    - Coverage is considered inclusive of both start and end.
+    - A period with start > end is treated as invalid and yields no overlap.
+    - Overlap occurs if there exists at least one point in time covered by both.
+
+    Examples:
+    - (1, 10) and (5, 15) -> True (days 5-10 overlap)
+    - (1, 10) and (11, 20) -> False (no shared day)
+    - (1, 1) and (1, 1) -> True (same single day)
+    - (1, 5) and (6, 10) -> False (adjacent, no overlap)
+    """"""
+
+    # Validate intervals: if start is after end, treat as no coverage.
+    if a_start is None or a_end is None or b_start is None or b_end is None:
+        return False
+    if a_start > a_end or b_start > b_end:
+        return False
+
+    # Overlap for inclusive ranges exists if:
+    # latest_start <= earliest_end
+    latest_start = a_start if a_start >= b_start else b_start
+    earliest_end = a_end if a_end <= b_end else b_end
+
+    return latest_start <= earliest_end"
+T02,6,ambiguous,False,behavior,"(1,10,10,20): expected False, got True | (1,5,5,5): expected False, got True","def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Return True if two coverage periods overlap, False otherwise.
+
+    Assumptions:
+    - a_start, a_end, b_start, b_end are comparable (e.g., dates or ints).
+    - Coverage is inclusive on both start and end dates.
+    - If an interval has start > end, it is treated as invalid and
+      considered as having no coverage.
+    """"""
+
+    # Validate intervals: if start > end, treat as no coverage
+    if a_start is None or a_end is None or b_start is None or b_end is None:
+        return False
+    if a_start > a_end or b_start > b_end:
+        return False
+
+    # Two closed intervals [a_start, a_end] and [b_start, b_end] overlap
+    # if the later of the starts is <= the earlier of the ends.
+    return max(a_start, b_start) <= min(a_end, b_end)"
+T02,7,unambiguous,True,pass,,"def coverage_overlaps(a_start: int, a_end: int, b_start: int, b_end: int) -> bool:
+    """"""
+    Determine if two half-open coverage intervals [a_start, a_end) and
+    [b_start, b_end) overlap on at least one integer day.
+
+    Intervals are half-open: start is inclusive, end is exclusive.
+    They overlap if there exists an integer d such that:
+        a_start <= d < a_end and b_start <= d < b_end
+    """"""
+    # Normalize in case of inverted intervals
+    if a_end < a_start:
+        a_start, a_end = a_end, a_start
+    if b_end < b_start:
+        b_start, b_end = b_end, b_start
+
+    # For half-open intervals, overlap exists if:
+    # max(starts) < min(ends)
+    return max(a_start, b_start) < min(a_end, b_end)"
+T02,8,unambiguous,True,pass,,"def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Determine if two half-open intervals [a_start, a_end) and [b_start, b_end)
+    overlap on at least one integer day.
+
+    Intervals are half-open: they include the start day and exclude the end day.
+    For example, [1, 4) covers days 1, 2, 3.
+
+    Overlap exists iff:
+        max(a_start, b_start) < min(a_end, b_end)
+
+    Args:
+        a_start (int): Start day of first coverage interval (inclusive).
+        a_end (int): End day of first coverage interval (exclusive).
+        b_start (int): Start day of second coverage interval (inclusive).
+        b_end (int): End day of second coverage interval (exclusive).
+
+    Returns:
+        bool: True if intervals overlap on at least one day, False otherwise.
+    """"""
+    return max(a_start, b_start) < min(a_end, b_end)"
+T02,9,unambiguous,True,pass,,"def coverage_overlaps(a_start: int, a_end: int, b_start: int, b_end: int) -> bool:
+    """"""
+    Determine whether two half-open intervals [a_start, a_end) and [b_start, b_end)
+    overlap. Intervals are defined on integer day numbers and overlap iff they
+    share at least one covered day.
+    """"""
+    # Normalize in case of inverted ranges
+    if a_end < a_start:
+        a_start, a_end = a_end, a_start
+    if b_end < b_start:
+        b_start, b_end = b_end, b_start
+
+    # Two half-open intervals [a_start, a_end) and [b_start, b_end) overlap if:
+    # max(start) < min(end)
+    return max(a_start, b_start) < min(a_end, b_end)"
+T02,10,unambiguous,True,pass,,"def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Determine if two half-open intervals [a_start, a_end) and [b_start, b_end)
+    overlap on at least one integer day.
+
+    Args:
+        a_start (int): Start day of first coverage (inclusive).
+        a_end (int): End day of first coverage (exclusive).
+        b_start (int): Start day of second coverage (inclusive).
+        b_end (int): End day of second coverage (exclusive).
+
+    Returns:
+        bool: True if the intervals overlap on at least one day, False otherwise.
+    """"""
+    # Normalize intervals in case of inverted inputs
+    if a_end < a_start:
+        a_start, a_end = a_end, a_start
+    if b_end < b_start:
+        b_start, b_end = b_end, b_start
+
+    # For half-open intervals, they overlap iff:
+    # max(start1, start2) < min(end1, end2)
+    return max(a_start, b_start) < min(a_end, b_end)"
+T04,1,ambiguous,False,behavior,"expected 4 total attempts, got 3","def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to call submit_fn with retry logic.
+
+    Parameters
+    ----------
+    submit_fn : callable
+        A zero-argument function that executes the carrier submission.
+        It should return a result on success or raise an exception on failure.
+    max_retries : int, optional
+        Maximum number of attempts (initial attempt + retries - 1),
+        default is 3.
+
+    Returns
+    -------
+    Any
+        The return value of submit_fn on success.
+
+    Raises
+    ------
+    Exception
+        Re-raises the last exception after exhausting all retries.
+        Callers can interpret this as ""flag it for the adjuster"".
+    """"""
+    if max_retries < 1:
+        max_retries = 1
+
+    last_exc = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            return submit_fn()
+        except Exception as exc:
+            last_exc = exc
+            if attempt == max_retries:
+                # Exhausted retries: let the caller handle/flag for adjuster.
+                raise
+            # Otherwise, swallow and retry next loop iteration.
+    # This should never be reached because we either return or raise above.
+    if last_exc is not None:
+        raise last_exc"
+T04,2,ambiguous,False,behavior,"expected 4 total attempts, got 3","def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to submit using the given submit_fn, retrying on failure.
+
+    Parameters
+    ----------
+    submit_fn : callable
+        A callable that performs the carrier submission. It may return a
+        result or raise an exception on failure.
+    max_retries : int, optional
+        Maximum number of attempts (including the initial one) before giving up.
+        Defaults to 3.
+
+    Returns
+    -------
+    Any
+        The return value of submit_fn on success.
+
+    Raises
+    ------
+    Exception
+        Re-raises the last encountered exception if all attempts fail.
+        Callers can treat this as ""flag it for the adjuster"".
+    """"""
+    if max_retries < 1:
+        max_retries = 1
+
+    last_exc = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            return submit_fn()
+        except Exception as exc:  # noqa: BLE001 - intentionally broad for retry logic
+            last_exc = exc
+            if attempt == max_retries:
+                # Exhausted retries: propagate the error so caller can flag it.
+                raise
+            # Otherwise, silently retry on the next loop iteration.
+
+    # This should be unreachable, but added as a safeguard.
+    if last_exc is not None:
+        raise last_exc"
+T04,3,ambiguous,False,behavior,"expected 4 total attempts, got 3","def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to submit via the provided callable `submit_fn`, retrying on failure.
+
+    Parameters
+    ----------
+    submit_fn : callable
+        A zero-argument callable that performs the carrier submission.
+        It should either:
+          - return a truthy value on success, or
+          - raise an Exception on failure.
+    max_retries : int, optional
+        Maximum number of attempts (including the first). Defaults to 3.
+
+    Returns
+    -------
+    dict
+        A result dictionary in the form:
+        {
+            ""success"": bool,
+            ""result"": any or None,        # whatever submit_fn returned on success
+            ""attempts"": int,              # how many attempts were made
+            ""error"": Exception or None    # last exception on failure
+        }
+
+    Behavior
+    --------
+    - Will call submit_fn up to `max_retries` times until it returns successfully
+      (no exception raised).
+    - If all attempts fail, returns success=False and includes the last error,
+      leaving the caller to ""flag it for the adjuster"" based on success=False.
+    """"""
+    if max_retries < 1:
+        max_retries = 1
+
+    attempts = 0
+    last_error = None
+
+    while attempts < max_retries:
+        attempts += 1
+        try:
+            result = submit_fn()
+            # Consider any non-exceptional return a success; callers can
+            # decide how to interpret the payload.
+            return {
+                ""success"": True,
+                ""result"": result,
+                ""attempts"": attempts,
+                ""error"": None,
+            }
+        except Exception as exc:  # noqa: BLE001 - broad by design for retry logic
+            last_error = exc
+            # Continue loop to retry unless we've exhausted attempts
+
+    # If we get here, all attempts failed
+    return {
+        ""success"": False,
+        ""result"": None,
+        ""attempts"": attempts,
+        ""error"": last_error,
+    }"
+T04,4,ambiguous,False,behavior,"expected 4 total attempts, got 3","def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to submit to the carrier using the provided submit_fn, retrying
+    up to max_retries times upon failure before propagating the error.
+
+    Parameters
+    ----------
+    submit_fn : callable
+        A zero-argument function that performs the submission to the carrier.
+        It should either:
+          - return a result on success, or
+          - raise an Exception on failure.
+    max_retries : int, optional
+        Maximum number of attempts (including the initial attempt) before
+        giving up and letting the exception propagate. Defaults to 3.
+
+    Returns
+    -------
+    Any
+        The result of submit_fn on successful execution.
+
+    Raises
+    ------
+    Exception
+        The last exception raised by submit_fn if all retries are exhausted.
+    """"""
+    if max_retries < 1:
+        max_retries = 1
+
+    last_exc = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            return submit_fn()
+        except Exception as exc:  # noqa: BLE001 - we intentionally retry on any exception
+            last_exc = exc
+            # If this was our last allowed attempt, re-raise to flag for adjuster
+            if attempt == max_retries:
+                raise
+
+    # In theory we never reach here, but keep for defensive completeness.
+    if last_exc is not None:
+        raise last_exc"
+T04,5,ambiguous,False,behavior,"expected 4 total attempts, got 3","def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to submit via the provided submit_fn, retrying up to max_retries times.
+
+    Parameters
+    ----------
+    submit_fn : callable
+        A no-argument function that performs the submission. It should return a
+        truthy value on success. It may raise exceptions on failure.
+    max_retries : int, optional
+        Maximum number of attempts (including the initial one). Defaults to 3.
+
+    Returns
+    -------
+    Any
+        The successful result returned by submit_fn.
+
+    Raises
+    ------
+    RuntimeError
+        If all attempts fail; this indicates it should be flagged for adjuster
+        review by the caller.
+    """"""
+    if max_retries < 1:
+        max_retries = 1
+
+    last_exc = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            result = submit_fn()
+            if result:
+                return result
+            # If result is falsy, treat as failure and retry if attempts remain.
+        except Exception as exc:  # noqa: BLE001 - calling code depends on generic handling
+            last_exc = exc
+            # continue to next attempt
+
+    # If we get here, all attempts failed
+    msg = f""Carrier submission failed after {max_retries} attempts; flag for adjuster.""
+    if last_exc is not None:
+        raise RuntimeError(msg) from last_exc
+    raise RuntimeError(msg)"
+T04,6,ambiguous,False,behavior,"expected 4 total attempts, got 3","def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to submit using `submit_fn` with basic retry logic.
+
+    :param submit_fn: A callable that performs the submission. It should either
+                      - return a truthy value on success (and optionally a value), or
+                      - raise an exception on failure.
+    :param max_retries: Maximum number of attempts (including the first).
+    :return: A tuple: (success: bool, result_or_error)
+             - success: True if the submission eventually succeeded, else False.
+             - result_or_error: The return value from a successful submit_fn call,
+               or the last exception instance if all attempts failed.
+    """"""
+    if max_retries < 1:
+        max_retries = 1
+
+    last_error = None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            result = submit_fn()
+            # Consider any non-exception execution as a ""success"" and return it.
+            return True, result
+        except Exception as exc:  # noqa: BLE001 - we want to catch all submission failures
+            last_error = exc
+            # If this was the final attempt, break and report failure.
+            if attempt == max_retries:
+                break
+
+    # All attempts exhausted, flag for adjuster by returning failure.
+    return False, last_error"
+T04,7,unambiguous,True,pass,,"def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Call `submit_fn` once plus up to `max_retries` additional times
+    if it raises an exception. If all attempts fail, re-raise the last
+    caught exception.
+
+    :param submit_fn: A callable with no arguments.
+    :param max_retries: Number of additional attempts on failure.
+    :return: The return value of `submit_fn` if any attempt succeeds.
+    :raises: The last exception encountered if all attempts fail.
+    """"""
+    last_exception = None
+    attempts = max_retries + 1  # original attempt + retries
+
+    for _ in range(attempts):
+        try:
+            return submit_fn()
+        except Exception as exc:
+            last_exception = exc
+
+    # If we exhausted all attempts, raise the last exception encountered
+    raise last_exception"
+T04,8,unambiguous,True,pass,,"def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Call submit_fn(), retrying on any exception.
+
+    Args:
+        submit_fn (callable): Function to call with no arguments.
+        max_retries (int): Number of additional attempts after the first.
+
+    Returns:
+        The return value of submit_fn() on a successful attempt.
+
+    Raises:
+        Exception: Re-raises the last exception if all attempts fail.
+    """"""
+    last_exc = None
+    attempts = max_retries + 1  # original attempt + retries
+
+    for _ in range(attempts):
+        try:
+            return submit_fn()
+        except Exception as exc:
+            last_exc = exc
+
+    # If we reach here, all attempts failed
+    raise last_exc"
+T04,9,unambiguous,True,pass,,"def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Calls submit_fn() once plus up to max_retries additional times (i.e.,
+    max_retries + 1 total attempts) if exceptions are raised.
+    Re-raises the last exception if all attempts fail.
+    No delay between attempts.
+
+    :param submit_fn: A callable with no arguments to be executed.
+    :param max_retries: Maximum number of additional attempts on failure.
+    :return: The result of submit_fn() if it succeeds.
+    :raises: The last exception raised by submit_fn() if all attempts fail.
+    """"""
+    attempts = max_retries + 1
+    last_exc = None
+
+    for _ in range(attempts):
+        try:
+            return submit_fn()
+        except Exception as exc:
+            last_exc = exc
+
+    # If we're here, all attempts failed
+    raise last_exc"
+T04,10,unambiguous,True,pass,,"def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Calls submit_fn() once plus up to max_retries additional attempts
+    if exceptions occur. If all attempts fail, re-raises the last exception.
+
+    :param submit_fn: Callable with no arguments to be executed.
+    :param max_retries: Number of additional attempts after the first failure.
+    :return: The return value of submit_fn on a successful attempt.
+    :raises: The last exception encountered if all attempts fail.
+    """"""
+    attempts = 0
+    last_exception = None
+
+    # Total attempts = 1 original + max_retries additional
+    total_attempts = 1 + (max_retries if max_retries >= 0 else 0)
+
+    while attempts < total_attempts:
+        try:
+            return submit_fn()
+        except Exception as e:
+            last_exception = e
+            attempts += 1
+            if attempts >= total_attempts:
+                raise last_exception"
+T05,1,ambiguous,False,behavior,"expected ['CLM-004', 'CLM-001', 'CLM-003', 'CLM-002'], got ['CLM-004', 'CLM-001', 'CLM-002', 'CLM-003']","from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity (most severe first). For ties in severity,
+    sort alphabetically by claim ID.
+
+    :param claims: List of (claim_id, severity) tuples
+    :return: List of claim IDs ordered by ranking
+    """"""
+    # Sort by severity descending, then by claim_id ascending
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,2,ambiguous,False,behavior,"expected ['CLM-004', 'CLM-001', 'CLM-003', 'CLM-002'], got ['CLM-004', 'CLM-001', 'CLM-002', 'CLM-003']","from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity, most severe (largest integer) first.
+    Ties are broken by claim ID in ascending alphabetical order.
+
+    :param claims: List of (claim_id, severity) tuples.
+    :return: List of claim IDs sorted by the described criteria.
+    """"""
+    # Sort by: primary key = -severity (descending), secondary = claim_id (ascending)
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,3,ambiguous,False,behavior,"expected ['CLM-004', 'CLM-001', 'CLM-003', 'CLM-002'], got ['CLM-004', 'CLM-001', 'CLM-002', 'CLM-003']","from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity, most severe first.
+    Ties are broken alphabetically by claim ID.
+
+    :param claims: List of (claim_id, severity) tuples
+    :return: List of claim_ids ordered by ranking
+    """"""
+    # Sort by:
+    #   1) severity descending  -> use negative severity
+    #   2) claim_id ascending   -> alphabetical
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,4,ambiguous,False,behavior,"expected ['CLM-004', 'CLM-001', 'CLM-003', 'CLM-002'], got ['CLM-004', 'CLM-001', 'CLM-002', 'CLM-003']","from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity, highest severity first.
+    For ties in severity, sort alphabetically by claim ID.
+
+    :param claims: A list of (claim_id, severity) tuples.
+    :return: A list of claim_ids ordered by rank.
+    """"""
+    # Sort by:
+    # 1. severity descending  -> use negative severity
+    # 2. claim_id ascending   -> natural string order
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,5,ambiguous,False,behavior,"expected ['CLM-004', 'CLM-001', 'CLM-003', 'CLM-002'], got ['CLM-004', 'CLM-001', 'CLM-002', 'CLM-003']","from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity (most severe first). For ties in severity,
+    sort alphabetically by claim ID.
+
+    :param claims: List of (claim_id, severity) tuples
+    :return: List of claim_ids ordered by ranking
+    """"""
+    # Sort by:
+    # 1) severity descending  -> -severity
+    # 2) claim_id ascending   -> claim_id
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,6,ambiguous,False,behavior,"expected ['CLM-004', 'CLM-001', 'CLM-003', 'CLM-002'], got ['CLM-004', 'CLM-001', 'CLM-002', 'CLM-003']","from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity (highest severity first). For claims with the same
+    severity, sort alphabetically by claim ID.
+
+    :param claims: A list of (claim_id, severity) tuples.
+    :return: A list of claim_ids sorted by the ranking rules.
+    """"""
+    # Sort by:
+    #   1) severity descending  -> use negative severity for standard ascending sort
+    #   2) claim_id ascending   -> alphabetical
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,7,unambiguous,True,pass,,"from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claim IDs by severity score in descending order.
+    Ties are broken by original input order (stable sort).
+
+    :param claims: List of (claim_id, severity_score) tuples.
+    :return: List of claim_ids sorted by severity descending.
+    """"""
+    # Python's sort is stable, so sorting by severity descending alone
+    # preserves input-order for ties.
+    sorted_claims = sorted(claims, key=lambda item: item[1], reverse=True)
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,8,unambiguous,True,pass,,"from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity score in descending order.
+    Ties are resolved by keeping the original input order (stable sort).
+
+    :param claims: List of (claim_id, severity_score) tuples
+    :return: List of claim_ids sorted by descending severity
+    """"""
+    # Python's sort is stable; sorting by negative score ensures descending order
+    sorted_claims = sorted(claims, key=lambda c: -c[1])
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,9,unambiguous,True,pass,,"from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claim IDs by severity score in descending order.
+    Ties are broken by original input order (stable sort).
+
+    Args:
+        claims: A list of tuples (claim_id, severity).
+
+    Returns:
+        A list of claim_ids sorted by severity descending.
+    """"""
+    # Python's sort is stable, so we sort by negative severity to get
+    # descending order while preserving original order for ties.
+    sorted_claims = sorted(claims, key=lambda c: -c[1])
+    return [claim_id for claim_id, _ in sorted_claims]"
+T05,10,unambiguous,True,pass,,"from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claim IDs by severity score in descending order.
+
+    Args:
+        claims: A list of tuples, each containing (claim_id, severity_score).
+
+    Returns:
+        A list of claim IDs sorted by severity score descending.
+        Ties are broken by original input order (stable sort).
+    """"""
+    # Python's sort is stable; sorting by negative severity ensures
+    # descending order while preserving original order for ties.
+    sorted_claims = sorted(claims, key=lambda c: -c[1])
+    return [claim_id for claim_id, _ in sorted_claims]"
+T08,1,ambiguous,False,behavior,"expected existing quote 500.0 preserved, got second=500.0, store={'quotes': {'APP-001': 500.0}}","from typing import Dict
+
+
+def get_or_create_quote(store: Dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently get or create a quote premium for a given application.
+
+    Behavior:
+    - If a quote for `application_id` already exists in `store`, return the
+      existing premium and ignore the `premium` argument.
+    - If it does not exist, create it with the provided `premium`, store it,
+      and return that value.
+
+    The `store` dict is expected to be a shared, mutable data structure that
+    persists between calls (e.g., at module level or injected from outside).
+
+    Example `store` layout (convention, not enforced):
+        {
+            ""quotes"": {
+                ""app123"": 120.50,
+                ""app456"": 80.00,
+            }
+        }
+    """"""
+    if ""quotes"" not in store or not isinstance(store[""quotes""], dict):
+        # Initialize the quotes bucket if missing or malformed
+        store[""quotes""] = {}
+
+    quotes = store[""quotes""]
+
+    if application_id in quotes:
+        # Existing quote: return previously stored premium
+        return float(quotes[application_id])
+
+    # New quote: store and return provided premium
+    quotes[application_id] = float(premium)
+    return float(premium)"
+T08,2,ambiguous,False,behavior,"expected existing quote 500.0 preserved, got second=500.0, store={'quotes': {'APP-001': 500.0}}","def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently get or create a quote premium for an application.
+
+    Behavior:
+    - If a quote for `application_id` already exists in `store`, return the
+      existing premium and DO NOT overwrite it, even if a different
+      `premium` is passed on subsequent calls.
+    - If no quote exists yet, create it with the given `premium` and return it.
+
+    The `store` is expected to be a mutable mapping (e.g. dict) that persists
+    across calls, keyed by application_id, with the premium as the value.
+    """"""
+    if ""quotes"" not in store or not isinstance(store[""quotes""], dict):
+        store[""quotes""] = {}
+
+    quotes = store[""quotes""]
+
+    if application_id in quotes:
+        # Idempotent behavior: do not modify existing premium.
+        return quotes[application_id]
+
+    # First time for this application_id: create and return.
+    quotes[application_id] = float(premium)
+    return quotes[application_id]"
+T08,3,ambiguous,True,pass,,"def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently get or create a quote for an application.
+
+    Behavior:
+    - If a quote for the given application_id already exists in store, return that
+      existing premium without modifying it.
+    - If not, create a new quote with the provided premium and return it.
+
+    This ensures that calling the function multiple times with the same
+    application_id does not cause issues or change previously stored values.
+
+    Args:
+        store: A mutable dictionary used as storage. It is expected to map
+               application_id (str) -> premium (float).
+        application_id: Unique identifier for the application.
+        premium: Premium value to use if a quote needs to be created.
+
+    Returns:
+        The premium associated with the application_id (existing or newly created).
+    """"""
+    # If the quote already exists, return the existing premium (idempotent behavior)
+    if application_id in store:
+        existing_premium = store[application_id]
+        # Ensure the stored value is consistently treated as float
+        try:
+            return float(existing_premium)
+        except (TypeError, ValueError):
+            # If something unexpected is in the store, fall back to given premium
+            # but DO NOT overwrite the store to avoid hidden side effects.
+            return float(premium)
+
+    # Otherwise, create a new quote and store it
+    normalized_premium = float(premium)
+    store[application_id] = normalized_premium
+    return normalized_premium"
+T08,4,ambiguous,False,behavior,"expected existing quote 500.0 preserved, got second=500.0, store={'quotes': {'APP-001': 500.0}}","from typing import Dict
+
+
+def get_or_create_quote(store: Dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently get or create a quote premium for a given application.
+
+    Behavior:
+    - If a quote already exists in `store` for `application_id`, return the
+      existing premium and ignore the passed-in `premium` value.
+    - If it does not exist, store the given `premium` and return it.
+
+    The `store` is expected to be a mutable mapping that persists between calls.
+
+    Args:
+        store: A dict-like object used to persist quotes. Mutated in-place.
+        application_id: The unique identifier for the application.
+        premium: The premium value to set if a quote does not yet exist.
+
+    Returns:
+        float: The existing or newly created premium value.
+    """"""
+    if ""quotes"" not in store or not isinstance(store[""quotes""], dict):
+        store[""quotes""] = {}
+
+    quotes = store[""quotes""]
+
+    if application_id in quotes:
+        # Existing quote: ensure we always return the stored value
+        existing_premium = quotes[application_id]
+        # Only allow numeric stored premiums; if corrupted, overwrite
+        if isinstance(existing_premium, (int, float)):
+            return float(existing_premium)
+        # Fallback: overwrite non-numeric with provided premium
+    # New or corrupted entry: set/overwrite with provided premium
+    quotes[application_id] = float(premium)
+    return float(premium)"
+T08,5,ambiguous,False,behavior,"expected existing quote 500.0 preserved, got second=500.0, store={'_quotes_by_application_id': {'APP-001': 500.0}}","from typing import Dict
+
+
+def get_or_create_quote(store: Dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently record and retrieve a quote premium for a given application.
+
+    Behavior:
+    - If a quote for `application_id` already exists in `store`, return that
+      existing premium and ignore the `premium` argument.
+    - If it does not exist, create it using the provided `premium` and return it.
+
+    This ensures that calling the function multiple times with the same
+    application_id does not cause inconsistencies or errors.
+
+    The `store` dict is expected to be a mutable mapping that is shared by
+    callers (e.g., a module-level in-memory store or an adapter around an
+    external persistence layer). This function mutates `store` in-place.
+    """"""
+
+    # Use a dedicated namespace inside the store so we don't collide with other
+    # keys that callers may keep in this dict.
+    QUOTE_KEY = ""_quotes_by_application_id""
+
+    # Initialize our sub-store if it doesn't exist yet.
+    quotes = store.setdefault(QUOTE_KEY, {})
+
+    # If we've already calculated a quote for this application, just return it.
+    if application_id in quotes:
+        return quotes[application_id]
+
+    # First time seeing this application_id: record and return the given premium.
+    quotes[application_id] = float(premium)
+    return quotes[application_id]"
+T08,6,ambiguous,False,behavior,"expected existing quote 500.0 preserved, got second=500.0, store={'quotes': {'APP-001': 500.0}}","def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently get or create a quote premium for a given application.
+
+    Behavior:
+    - If a quote already exists in `store` for `application_id`, return that
+      existing premium and ignore the new `premium` argument.
+    - If no quote exists, store the provided `premium` under `application_id`
+      and return it.
+
+    This ensures that calling the function multiple times with the same
+    `application_id` will not cause duplicate or inconsistent quotes.
+    """"""
+    # Initialize quote store if missing or incorrectly typed
+    quotes = store.setdefault(""quotes"", {})
+    if not isinstance(quotes, dict):
+        # If something wrong was stored under ""quotes"", reset it to a dict
+        quotes = {}
+        store[""quotes""] = quotes
+
+    # If quote exists, return existing premium (idempotent behavior)
+    if application_id in quotes:
+        return quotes[application_id]
+
+    # Otherwise, create it and return the new premium
+    quotes[application_id] = float(premium)
+    return quotes[application_id]"
+T08,7,unambiguous,True,pass,,"def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Retrieve an existing quote for the given application_id from the store,
+    or create it with the provided premium if it does not exist.
+
+    Args:
+        store (dict): A dictionary acting as storage for quotes, keyed by application_id.
+        application_id (str): The identifier for the application.
+        premium (float): The premium to store if no quote exists yet.
+
+    Returns:
+        float: The existing or newly created premium for the application_id.
+    """"""
+    if application_id in store:
+        return store[application_id]
+
+    store[application_id] = premium
+    return premium"
+T08,8,unambiguous,True,pass,,"def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Retrieve an existing quote premium for the given application_id from the store,
+    or create a new one if it does not exist.
+
+    :param store: Dictionary mapping application IDs to premium values.
+    :param application_id: Unique identifier for the application.
+    :param premium: Premium value to store if the application_id is not already present.
+    :return: The existing or newly stored premium value.
+    """"""
+    if application_id in store:
+        return store[application_id]
+    store[application_id] = premium
+    return premium"
+T08,9,unambiguous,True,pass,,"def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Retrieve an existing premium for the given application_id from the store.
+    If it does not exist, create it with the provided premium and return it.
+
+    :param store: Dictionary mapping application_id to premium.
+    :param application_id: The application identifier.
+    :param premium: The premium to store if application_id is not already present.
+    :return: The existing or newly stored premium.
+    """"""
+    if application_id in store:
+        return store[application_id]
+    store[application_id] = premium
+    return premium"
+T08,10,unambiguous,True,pass,,"def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Retrieve an existing premium for the given application_id from the store,
+    or create a new entry with the provided premium if none exists.
+
+    :param store: Dictionary mapping application_id to premium.
+    :param application_id: Identifier for the quote/application.
+    :param premium: Premium value to store if a quote does not already exist.
+    :return: The existing or newly stored premium for the application_id.
+    """"""
+    if application_id in store:
+        return store[application_id]
+    store[application_id] = premium
+    return premium"
+T09,1,ambiguous,False,behavior,"mixed naive-expiry/aware-now raised TypeError(""can't compare offset-naive and offset-aware datetimes"")","from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Determine whether the filing deadline has been passed.
+
+    Assumptions:
+    - `deadline` is the last *moment* at which a claim may be submitted.
+      Submissions at exactly `deadline` are considered on time.
+    - Therefore, we return True only if `now` is strictly later than `deadline`.
+    - Inputs are naive datetimes (no timezone), as per the example.
+    """"""
+    if not isinstance(deadline, datetime) or not isinstance(now, datetime):
+        raise TypeError(""deadline and now must be datetime instances"")
+
+    return now > deadline"
+T09,2,ambiguous,False,behavior,mixed naive-expiry/aware-now raised ValueError('deadline and now must both be naive or both be timezone-aware datetimes'),"from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if the current time `now` is strictly after the filing `deadline`.
+
+    Both `deadline` and `now` are expected to be naive (no tzinfo) or both
+    timezone-aware with compatible timezones. The comparison is strict:
+    - Returns False if now == deadline (still on time).
+    - Returns True if now > deadline (late).
+    """"""
+    if not isinstance(deadline, datetime) or not isinstance(now, datetime):
+        raise TypeError(""deadline and now must be datetime instances"")
+
+    # If one is naive and the other is aware, Python will raise; mirror that
+    # behavior explicitly for clearer error messages.
+    if (deadline.tzinfo is None) != (now.tzinfo is None):
+        raise ValueError(""deadline and now must both be naive or both be timezone-aware datetimes"")
+
+    return now > deadline"
+T09,3,ambiguous,False,behavior,"mixed naive-expiry/aware-now raised TypeError(""can't compare offset-naive and offset-aware datetimes"")","from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if the current time `now` is strictly past the filing `deadline`,
+    otherwise False.
+
+    Assumptions / behavior:
+    - Deadlines are treated as precise instants in time (not whole-day due dates).
+    - If `now` is exactly equal to `deadline`, this is considered **not** past
+      the deadline (i.e., still on time).
+    - The function assumes both `deadline` and `now` are comparable `datetime`
+      instances (both naive or both timezone-aware in a compatible way).
+    """"""
+    return now > deadline"
+T09,4,ambiguous,False,behavior,mixed naive-expiry/aware-now raised ValueError('Cannot compare naive and timezone-aware datetimes'),"from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Determine whether the current time `now` is strictly past the filing `deadline`.
+
+    Both `deadline` and `now` are expected to be naive datetimes (no tzinfo),
+    as implied by the ticket. If either is timezone-aware and the other is not,
+    they cannot be meaningfully compared and a ValueError is raised.
+
+    :param deadline: The cutoff datetime for filing.
+    :param now: The current datetime to compare against the deadline.
+    :return: True if `now` is strictly later than `deadline`, False otherwise.
+    """"""
+    # Basic validation: avoid comparing naive and aware datetimes.
+    if (deadline.tzinfo is None) != (now.tzinfo is None):
+        raise ValueError(""Cannot compare naive and timezone-aware datetimes"")
+
+    # ""Past its filing deadline"" means the deadline moment has been exceeded,
+    # so equality is still on time, and strictly greater is considered past.
+    return now > deadline"
+T09,5,ambiguous,False,behavior,"mixed naive-expiry/aware-now raised TypeError(""can't compare offset-naive and offset-aware datetimes"")","from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if `now` is strictly after `deadline`, meaning the filing
+    deadline has passed and new claims are late.
+
+    Assumptions:
+    - Both `deadline` and `now` are naive datetimes in the same implicit
+      timezone/context, as implied by the ticket description.
+    - The deadline is inclusive up to and including the exact datetime value.
+      i.e., at exactly `deadline` it is still on time; the claim becomes late
+      immediately after that instant.
+    """"""
+    return now > deadline"
+T09,6,ambiguous,False,behavior,mixed naive-expiry/aware-now raised ValueError('deadline and now must both be naive or both be timezone-aware datetimes'),"from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Determine whether a claim is past its filing deadline.
+
+    Assumptions:
+    - `deadline` is the last allowed moment to file.
+    - If `now` is strictly greater than `deadline`, the claim is late
+      and the function returns True.
+    - If `now` is equal to or before `deadline`, the claim is on time
+      and the function returns False.
+    - Both `deadline` and `now` are naive datetimes (no timezone info),
+      or both are timezone-aware; mixed usage is considered invalid and
+      raises a ValueError.
+    """"""
+
+    # Guard against mixing naive and aware datetimes, which leads to
+    # confusing comparisons; make a deliberate failure instead.
+    if (deadline.tzinfo is None) != (now.tzinfo is None):
+        raise ValueError(
+            ""deadline and now must both be naive or both be timezone-aware datetimes""
+        )
+
+    # Past the deadline only if strictly greater than the deadline.
+    return now > deadline"
+T09,7,unambiguous,True,pass,,"from datetime import datetime, timezone
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if `now` is at or past `deadline`.
+
+    Naive datetimes are assumed to be in UTC. Function works for any
+    combination of naive/aware datetimes.
+    """"""
+    def to_utc(dt: datetime) -> datetime:
+        if dt.tzinfo is None:
+            # Treat naive datetimes as UTC
+            return dt.replace(tzinfo=timezone.utc)
+        # Convert aware datetimes to UTC
+        return dt.astimezone(timezone.utc)
+
+    deadline_utc = to_utc(deadline)
+    now_utc = to_utc(now)
+
+    return now_utc >= deadline_utc"
+T09,8,unambiguous,True,pass,,"from datetime import datetime, timezone
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if `now >= deadline`, after normalizing any naive datetimes to UTC.
+    Works whether inputs are naive, timezone-aware, or mixed.
+    """"""
+    # Normalize deadline
+    if deadline.tzinfo is None:
+        deadline = deadline.replace(tzinfo=timezone.utc)
+    else:
+        deadline = deadline.astimezone(timezone.utc)
+
+    # Normalize now
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    else:
+        now = now.astimezone(timezone.utc)
+
+    return now >= deadline"
+T09,9,unambiguous,True,pass,,"from __future__ import annotations
+from datetime import datetime, timezone
+
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if now >= deadline, normalizing any naive datetimes to UTC.
+
+    Works correctly when:
+    - both datetimes are aware
+    - both are naive
+    - one is naive and the other is aware
+
+    Naive datetimes are assumed to be in UTC.
+    """"""
+    def to_utc(dt: datetime) -> datetime:
+        if dt.tzinfo is None:
+            # Assume naive datetime is in UTC
+            return dt.replace(tzinfo=timezone.utc)
+        # Convert aware datetime to UTC
+        return dt.astimezone(timezone.utc)
+
+    deadline_utc = to_utc(deadline)
+    now_utc = to_utc(now)
+
+    return now_utc >= deadline_utc"
+T09,10,unambiguous,True,pass,,"from datetime import datetime, timezone
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if `now >= deadline`, treating any naive datetimes as UTC.
+    Works whether inputs are naive, aware, or a mix of both.
+    """"""
+    def to_utc(dt: datetime) -> datetime:
+        if dt.tzinfo is None:
+            # Treat naive datetime as UTC
+            return dt.replace(tzinfo=timezone.utc)
+        # Convert aware datetime to UTC
+        return dt.astimezone(timezone.utc)
+
+    deadline_utc = to_utc(deadline)
+    now_utc = to_utc(now)
+    return now_utc >= deadline_utc"
+T13,1,ambiguous,True,pass,,"def grace_period_days() -> int:
+    """"""
+    Return the default grace period (in days) for lapsed policies.
+
+    NOTE:
+        The actual grace period is expected to depend on jurisdiction (state)
+        and policy type, but that decision matrix has not been finalized yet.
+        Until that is available and the function signature is updated to accept
+        such parameters, this function returns a conservative, uniform default.
+
+    Rationale for default:
+        - 31 days is a common and conservative grace period used across many
+          life and health insurance products in the U.S.
+        - It is long enough to reduce consumer harm from minor payment delays
+          while still limiting insurer exposure.
+        - Using a single default avoids ""hidden"" jurisdiction logic until the
+          official matrix is approved.
+
+    When updating:
+        - Replace this implementation with a lookup against the finalized
+          state/policy-type matrix.
+        - Preserve the existing signature if call sites cannot yet pass
+          additional context; otherwise, deprecate this helper and introduce
+          a new, parameterized API.
+
+    Returns:
+        int: Number of grace period days currently in effect as a default.
+    """"""
+    return 31"
+T13,2,ambiguous,False,behavior,"expected 31 (conservative default), got 30","def grace_period_days() -> int:
+    """"""
+    Return the default number of grace-period days for lapsed policies.
+
+    NOTE:
+        The exact grace period is expected to depend on state and policy type,
+        but this matrix has not yet been finalized. Until those rules are
+        defined, we use a conservative, clearly-documented default.
+
+    Design rationale:
+        - 30 days is a common, easily communicable grace-period length in many
+          insurance and subscription contexts.
+        - It is long enough to be customer-friendly while not being so long
+          that it creates major accounting or coverage ambiguity.
+        - Once the state/policy-type matrix is finalized, this function is
+          intended to be refactored or replaced by a more sophisticated lookup.
+
+    Returns:
+        int: Number of grace period days to apply system-wide by default.
+    """"""
+    DEFAULT_GRACE_PERIOD_DAYS = 30
+    return DEFAULT_GRACE_PERIOD_DAYS"
+T13,3,ambiguous,False,behavior,"expected 31 (conservative default), got 30","def grace_period_days() -> int:
+    """"""
+    Return the default grace period (in days) for lapsed policies.
+
+    NOTE:
+        The exact grace period will eventually depend on jurisdiction and
+        policy type, based on a yet-to-be-finalized legal/compliance matrix.
+        For now, we return a conservative, clearly-documented default that
+        call sites can rely on until that matrix is implemented.
+
+    Design rationale (temporary):
+        * 30 days is a common, easy-to-communicate industry default for many
+          policy types and jurisdictions.
+        * Using a single constant avoids premature complexity while the
+          matrix is undefined.
+        * The value is centralized so it can be updated later without
+          changing call sites.
+
+    Once requirements are finalized, this function will likely:
+        * Accept contextual parameters (state, policy_type, etc.) OR
+        * Delegate to a configuration/mapping that incorporates those factors.
+
+    Returns:
+        int: Number of grace-period days to allow for lapsed policies.
+    """"""
+    # Temporary conservative default until legal/compliance finalizes rules.
+    return 30"
+T13,4,ambiguous,True,pass,,"def grace_period_days() -> int:
+    """"""
+    Return the number of days in the grace period for lapsed policies.
+
+    NOTE: This is a temporary, conservative default until the state/policy-type
+    matrix is finalized by Legal/Compliance.
+
+    Rationale:
+    - Common industry practice for many life and health products is ~30–31 days.
+    - Using 31 days is slightly more consumer-friendly and reduces legal risk
+      vs. under-estimating.
+    - Call sites currently do not pass state or policy type, so we cannot
+      differentiate yet.
+
+    Once the matrix is defined, this function will likely:
+      - Accept additional parameters (state, policy type), OR
+      - Be replaced/overloaded by a different resolution layer that knows
+        jurisdiction and product-level details.
+      - Until then, all policies share the same grace period.
+
+    Returns:
+        int: The number of days in the grace period (currently 31).
+    """"""
+    return 31"
+T13,5,ambiguous,False,behavior,"expected 31 (conservative default), got 30","def grace_period_days() -> int:
+    """"""
+    Return the number of grace period days for lapsed policies.
+
+    NOTE:
+        The actual grace period is expected to depend on state and policy type.
+        Those rules are not finalized yet. This function currently returns a
+        conservative default intended to be safe and easily adjustable later.
+
+    Rationale for default:
+        - Common insurance grace periods in the U.S. are often 30 or 31 days.
+        - Using 30 days is a widely recognized, conservative industry norm.
+        - Until the state/policy matrix is finalized, a single, centralized
+          value simplifies updates (change it here once rules are defined).
+
+    Once requirements are finalized, this function should be updated to:
+        - Accept context (e.g., state code, policy type) OR
+        - Delegate to a configuration/lookup mechanism that accounts for
+          jurisdiction and product-specific rules.
+
+    Returns:
+        int: Number of grace period days to allow for a lapsed policy.
+    """"""
+    # Temporary conservative default; update when the state/policy matrix is defined.
+    return 30"
+T13,6,ambiguous,True,pass,,"def grace_period_days() -> int:
+    """"""
+    Return the number of days in the post-lapse grace period.
+
+    NOTE:
+        - This is a temporary, conservative default until the
+          state/policy-type matrix is finalized by legal/compliance.
+        - Chosen value:
+              31 days
+          Rationale:
+              * Common regulatory grace periods cluster around 30 days.
+              * Using a slightly more generous period (31 days) reduces
+                risk of prematurely treating a policy as irrecoverably lapsed.
+        - Once the finalized matrix is available, this function should be
+          replaced by a rules-based implementation (e.g., using policy
+          metadata such as state, product line, and policy form).
+
+    Returns:
+        int: The number of days in the grace period.
+    """"""
+    # Temporary conservative default until compliance matrix is defined.
+    return 31"
+T13,7,unambiguous,True,pass,,"def grace_period_days() -> int:
+    """"""
+    Return the company-wide default grace period in days after a missed
+    premium payment before a policy lapses.
+
+    This is a conservative, consumer-protective default used pending
+    state-by-state legal review.
+    """"""
+    return 31"
+T13,8,unambiguous,True,pass,,"def grace_period_days() -> int:
+    """"""
+    Return the default grace period (in days) after a missed premium payment
+    before a policy lapses. This is the conservative, consumer-protective
+    company-wide default used pending state-by-state legal review.
+    """"""
+    return 31"
+T13,9,unambiguous,True,pass,,"def grace_period_days() -> int:
+    """"""
+    Return the conservative, company-wide default grace period (in days)
+    after a missed premium payment before a policy lapses.
+
+    This value is used pending state-by-state legal review.
+    """"""
+    return 31"
+T13,10,unambiguous,True,pass,,"def grace_period_days() -> int:
+    """"""
+    Return the conservative, company-wide default grace period in days
+    after a missed premium payment before a policy lapses.
+
+    This value is used pending state-by-state legal review.
+    """"""
+    return 31"

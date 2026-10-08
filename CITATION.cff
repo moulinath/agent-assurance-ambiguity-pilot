@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this harness or data, please cite it as below."
+title: "Agent assurance ambiguity pilot: harness, tasks and raw results"
+type: software
+authors:
+  - family-names: Chakrabarty
+    given-names: Moulinath
+    orcid: "https://orcid.org/0009-0002-3084-2930"
+    email: moulinath@yahoo.com
+repository-code: "https://github.com/moulinath/agent-assurance-ambiguity-pilot"
+license: MIT
+version: "0.1.0"
+date-released: "2026-10-08"
+keywords:
+  - agentic software engineering
+  - LLM-as-judge
+  - specification ambiguity
+  - assurance
+  - validator independence

@@ -1,0 +1,14 @@
+task_id,unambiguous_correct,ambiguous_no_clarification_correct,ambiguous_with_clarification_correct,num_questions_asked,failure_mode,transcript
+T01,True,False,True,1,recovered,"[('What rounding mode should be used?', ""Round-half-up (standard rounding), not banker's rounding. If a premium works out to exactly $x.xx5, it rounds up to the next cent, same as how a cashier would round a bill."")]"
+T02,False,False,False,0,no_clarification_sought,[]
+T03,False,False,False,0,no_clarification_sought,[]
+T04,True,False,True,1,recovered,"[(""Does '3 retries' mean 3 total attempts or 3 plus the original?"", '3 retries means the original submission attempt plus 3 more tries -- 4 total attempts before giving up and surfacing the error to the adjuster.')]"
+T05,False,False,False,1,wrong_question,"[('What programming language should I use?', None)]"
+T06,False,False,False,0,no_clarification_sought,[]
+T07,False,False,False,0,no_clarification_sought,[]
+T08,True,False,False,1,answer_not_applied,"[('Should re-running overwrite the existing quote?', ""No -- if a quote already exists for that application ID, return the existing quote unchanged. Don't overwrite it, even if the new premium calculation differs slightly. We don't want quotes silently changing underneath an agent who already showed a number to the customer."")]"
+T09,False,False,False,0,no_clarification_sought,[]
+T10,False,False,False,0,no_clarification_sought,[]
+T11,False,False,False,0,no_clarification_sought,[]
+T12,False,False,False,0,no_clarification_sought,[]
+T13,True,False,False,1,unresolved_intent,"[('How many days should the grace period be?', ""UNRESOLVED: Honestly we don't have a final number yet -- legal is still finalizing the state-by-state grace period matrix. Use your best judgment for now; we'll need to revisit this once compliance signs off."")]"
