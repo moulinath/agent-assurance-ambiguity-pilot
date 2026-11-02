@@ -1,0 +1,29 @@
+{
+  "title": "Agent assurance ambiguity pilot: harness, tasks and raw results",
+  "upload_type": "software",
+  "description": "Open harness, task pool, labeled implementation pool and raw validator verdicts for a pilot study of how often accept/reject/hold decisions on agent-written code are correct as validator independence varies, with specification ambiguity as a planted common cause.",
+  "creators": [
+    {
+      "name": "Chakrabarty, Moulinath",
+      "affiliation": "Independent researcher",
+      "orcid": "0009-0002-3084-2930"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "agentic software engineering",
+    "LLM-as-judge",
+    "specification ambiguity",
+    "assurance"
+  ],
+  "version": "1.1.0",
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.23234730",
+      "relation": "isDocumentedBy",
+      "resource_type": "publication-preprint",
+      "scheme": "doi"
+    }
+  ],
+  "notes": "Self-funded; no external funding. v1.1.0 adds the gpt-5.1 reviewer verdicts and replaces mock outputs with real runs (see CHANGELOG.md)."
+}
