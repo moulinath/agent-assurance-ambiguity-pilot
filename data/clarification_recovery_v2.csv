@@ -1,0 +1,553 @@
+task_id,repeat,unambiguous_correct,ambiguous_no_clarification_correct,ambiguous_with_clarification_correct,num_questions_asked,failure_mode,transcript,asked_but_unparsed,final_raw_response
+T01,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from decimal import Decimal, ROUND_HALF_UP
+from typing import Iterable, Union
+
+Number = Union[int, float, Decimal, str]
+
+
+def total_premium(line_items: Iterable[Number]) -> Decimal:
+    """"""
+    Total premium line items and round to the nearest cent, using
+    typical billing rounding (round half up to 2 decimal places).
+
+    Args:
+        line_items: An iterable of numeric values representing premium
+                    amounts. Elements may be int, float, Decimal, or
+                    numeric strings.
+
+    Returns:
+        Decimal: Total premium rounded to 2 decimal places using
+                 ""round half up"" (e.g. 1.005 -> 1.01).
+    """"""
+    total = Decimal(""0"")
+
+    for item in line_items:
+        if isinstance(item, Decimal):
+            value = item
+        else:
+            # Convert via str to avoid binary float surprises
+            value = Decimal(str(item))
+        total += value
+
+    # Round to nearest cent, like a typical customer bill
+    return total.quantize(Decimal(""0.01""), rounding=ROUND_HALF_UP)
+```"
+T02,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from dataclasses import dataclass
+from typing import Iterable, List
+
+
+@dataclass(frozen=True)
+class Policy:
+    """"""
+    Simple policy representation.
+
+    Assumptions (based on the ticket):
+    - `start_day` and `end_day` are integers on the same scale (e.g., day numbers).
+    - Coverage is inclusive of both start_day and end_day.
+    - A policy must have start_day <= end_day to represent non-empty coverage.
+    """"""
+    start_day: int
+    end_day: int
+
+
+def coverage_overlaps(policies: Iterable[Policy]) -> bool:
+    """"""
+    Return True if there exists at least one pair of policies whose coverage overlaps.
+
+    Overlap definition (inclusive ranges):
+        Policy A [a_start, a_end]
+        Policy B [b_start, b_end]
+    overlap if:
+        max(a_start, b_start) <= min(a_end, b_end)
+
+    Examples:
+        A: 1-10, B: 5-15  -> overlap (days 5-10)
+        A: 1-10, B: 11-20 -> no overlap
+        A: 1-10, B: 10-20 -> overlap (day 10)
+    """"""
+    # Convert to list for multiple passes
+    policy_list: List[Policy] = list(policies)
+
+    if len(policy_list) < 2:
+        return False
+
+    # Sort policies by start_day to efficiently detect overlaps
+    policy_list.sort(key=lambda p: p.start_day)
+
+    # Keep track of the current ""active"" coverage end
+    current_end = policy_list[0].end_day
+
+    for policy in policy_list[1:]:
+        # If the next policy starts on or before the current active end, overlap exists
+        if policy.start_day <= current_end:
+            return True
+"
+T03,1,True,False,False,0,no_clarification_sought,[],False,"```python
+import re
+from typing import Iterable, List, Dict, Any
+
+
+def _normalize_name(name: str) -> str:
+    """"""
+    Normalize a beneficiary name for comparison:
+    - Strip leading/trailing whitespace
+    - Collapse internal whitespace to single spaces
+    - Lowercase
+    """"""
+    if not isinstance(name, str):
+        return """"
+
+    # Strip and collapse any whitespace (spaces, tabs, multiple spaces, etc.)
+    name = name.strip()
+    name = re.sub(r""\s+"", "" "", name)
+    return name.lower()
+
+
+def dedupe_beneficiaries(beneficiaries: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """"""
+    Remove duplicate beneficiaries by name (case-insensitive, whitespace-normalized).
+
+    Assumptions:
+    - Each beneficiary is a dict-like object with at least a ""name"" key.
+    - If multiple entries normalize to the same name, the first one in the input wins.
+    - Order of first occurrences is preserved.
+
+    Example:
+        Input:
+            [
+                {""name"": ""John Smith"", ""share"": 50},
+                {""name"": ""john smith"", ""share"": 50},
+                {""name"": ""Jane Doe"", ""share"": 100},
+            ]
+        Output:
+            [
+                {""name"": ""John Smith"", ""share"": 50},
+                {""name"": ""Jane Doe"", ""share"": 100},
+            ]
+    """"""
+    seen = set()
+    deduped: List[Dict[str, Any]] = []
+
+    for b in beneficiaries:
+        # Defensive: skip entries without a usable name
+        name = b.get(""name"") if isinstance(b, dict) else None
+        norm = _no"
+T04,1,True,False,False,0,no_clarification_sought,[],False,"```python
+import time
+from typing import Callable, Any, Tuple, Type, Optional
+
+
+class CarrierSubmissionError(Exception):
+    """"""Raised when the carrier submission ultimately fails after retries.""""""
+    pass
+
+
+def submit_with_retry(
+    submit_fn: Callable[..., Any],
+    *args,
+    max_retries: int = 3,
+    delay_seconds: float = 1.0,
+    retry_exceptions: Tuple[Type[BaseException], ...] = (Exception,),
+    on_give_up: Optional[Callable[[BaseException], None]] = None,
+    **kwargs
+) -> Any:
+    """"""
+    Call the carrier submission API with retries.
+
+    Parameters
+    ----------
+    submit_fn : Callable
+        The function that performs the carrier submission (e.g. makes an HTTP call).
+    *args, **kwargs
+        Positional and keyword arguments passed through to `submit_fn`.
+    max_retries : int, default 3
+        Maximum number of attempts (including the initial one).
+    delay_seconds : float, default 1.0
+        Delay between attempts in seconds.
+    retry_exceptions : tuple[Exception types], default (Exception,)
+        Exceptions that should trigger a retry.
+    on_give_up : Callable[[Exception], None], optional
+        Callback invoked when we give up after exhausting retries.
+        Intended place to ""flag it for the adjuster"".
+
+    Returns
+    -------
+    Any
+        Whatever `submit_fn` returns on success.
+
+    Raises
+    ------
+    CarrierSubmissionError
+        If all attempts fail. The original exception is set as __cause__.
+    """"""
+    attempts = 0
+    last_exc"
+T05,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from typing import List, Dict, Any
+
+
+def rank_claims(claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """"""
+    Sort the adjuster queue by severity, most severe first.
+    For ties, sort alphabetically by claim ID.
+
+    Expected claim structure (per item in `claims` list):
+        {
+            ""claim_id"": <string-like>,
+            ""severity"": <number-like, higher means more severe>
+            ... (other fields ignored for sorting)
+        }
+
+    Sorting rules:
+      1. Primary: severity descending (higher severity first)
+      2. Secondary (tiebreaker): claim_id ascending (alphabetical / lexicographic)
+
+    :param claims: List of claim dictionaries.
+    :return: New list of claims sorted by severity desc, then claim_id asc.
+    """"""
+
+    # We make no assumptions about mutating the original list, so return a new one.
+    # Use negative severity to sort in descending order, and claim_id for alphabetical tie-breaking.
+    return sorted(
+        claims,
+        key=lambda c: (
+            -(c.get(""severity"", 0)),
+            str(c.get(""claim_id"", """"))
+        ),
+    )
+```"
+T06,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from typing import List, Any, Dict, Optional, Tuple
+
+
+def paginate_claims(
+    claims: List[Dict[str, Any]],
+    page: int,
+    per_page: int,
+) -> Dict[str, Any]:
+    """"""
+    Paginate a list of claims for the adjuster dashboard.
+
+    Pages are 1-based (page 1 is the first page).
+
+    Args:
+        claims: Complete list of claim dicts (already filtered/sorted as desired).
+        page: 1-based page number requested.
+        per_page: Number of claims per page. Must be >= 1.
+
+    Returns:
+        Dict with:
+          - items: list of claims on the requested page
+          - page: current page (1-based)
+          - per_page: page size
+          - total_items: total number of claims
+          - total_pages: total number of pages (0 if no items)
+          - has_next: whether a subsequent page exists
+          - has_prev: whether a previous page exists
+          - next_page: next page number or None
+          - prev_page: previous page number or None
+    """"""
+    if per_page <= 0:
+        raise ValueError(""per_page must be a positive integer"")
+
+    total_items = len(claims)
+
+    if total_items == 0:
+        return {
+            ""items"": [],
+            ""page"": 1 if page >= 1 else 1,
+            ""per_page"": per_page,
+            ""total_items"": 0,
+            ""total_pages"": 0,
+            ""has_next"": False,
+            ""has_prev"": False,
+            ""next_page"": None,
+            ""prev_page"": None,
+        }
+
+    # Normalize page to be at least 1
+    if page < 1:
+        pa"
+T07,1,True,True,True,0,not_applicable,[],False,"```python
+import re
+
+_POLICY_NUMBER_PATTERN = re.compile(r""^POL-\d{6}$"")
+
+def is_valid_policy_number(value: str) -> bool:
+    """"""
+    Validate that the given value is a policy number in the format:
+    'POL-' followed by exactly 6 digits.
+
+    Examples of valid values:
+        - ""POL-000001""
+        - ""POL-123456""
+
+    Examples of invalid values:
+        - ""POL-12345""      (only 5 digits)
+        - ""POL-1234567""    (7 digits)
+        - ""pol-123456""     (wrong case)
+        - ""POL123456""      (missing dash)
+        - "" POL-123456 ""   (leading/trailing spaces)
+
+    :param value: The policy number string to validate.
+    :return: True if the value matches the required format, False otherwise.
+    """"""
+    if not isinstance(value, str):
+        return False
+
+    return _POLICY_NUMBER_PATTERN.match(value) is not None
+```"
+T08,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from dataclasses import dataclass, field
+from typing import Dict, Optional, Tuple
+
+# --- Domain models (minimal stubs you can integrate with your real models) ---
+
+@dataclass
+class Application:
+    """"""
+    Minimal Application model stub.
+    Replace `id` with your actual primary key / unique identifier field.
+    """"""
+    id: int
+    # ... other fields ...
+
+
+@dataclass
+class Quote:
+    """"""
+    Minimal Quote model stub.
+    `application_id` links the quote to the application.
+    """"""
+    id: int
+    application_id: int
+    premium: float
+    metadata: Dict = field(default_factory=dict)
+
+
+# --- In-memory ""storage"" for illustration purposes only ---
+# Replace all of this with your persistence layer (e.g. ORM calls).
+_QUOTES_BY_APP_ID: Dict[int, Quote] = {}
+_NEXT_QUOTE_ID: int = 1
+
+
+def _calculate_quote_for_application(application: Application) -> Tuple[float, Dict]:
+    """"""
+    Deterministic quote calculation for a given application.
+    This is a placeholder for the real business logic.
+    
+    Returns:
+        (premium, metadata)
+    """"""
+    # Example deterministic logic based solely on the application ID
+    premium = float(application.id * 10.0)
+    metadata = {""basis"": ""example_calc"", ""application_id"": application.id}
+    return premium, metadata
+
+
+def _fetch_existing_quote(application: Application) -> Optional[Quote]:
+    """"""
+    Look up an existing quote for the given application.
+    Replace this with your actual DB/ORM query.
+    """"""
+    return _QUOTES_BY_APP_"
+T09,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from datetime import datetime
+from typing import Optional
+
+
+def is_past_deadline(
+    filing_datetime: datetime,
+    deadline_datetime: datetime,
+    *,
+    inclusive: bool = False,
+) -> bool:
+    """"""
+    Determine whether a claim filing occurred past its deadline.
+
+    Assumes both datetimes are naive (no timezone) or both are aware and comparable.
+    The comparison is purely on the datetime values provided.
+
+    Args:
+        filing_datetime: The datetime when the claim was filed.
+        deadline_datetime: The filing deadline datetime.
+        inclusive: If True, filing exactly at the deadline is considered past.
+                   If False, filing at or before the deadline is on-time,
+                   and only strictly later is considered past.
+
+    Returns:
+        True if the filing is past the deadline (late), False otherwise.
+    """"""
+    if inclusive:
+        return filing_datetime >= deadline_datetime
+    return filing_datetime > deadline_datetime
+```"
+T10,1,True,True,True,0,not_applicable,[],False,"```python
+from typing import List, Tuple, Optional
+
+def is_risk_class_allowed(
+    rules: List[Tuple[str, bool]],
+    risk_class: str
+) -> bool:
+    """"""
+    Determine whether an applicant's risk class is allowed based on underwriting rules.
+
+    Rules:
+    - `rules` is a list of (risk_class_name, allowed_flag) tuples.
+    - The *last* rule in the list that matches the given risk_class determines the result.
+    - If there is no matching rule for the given risk_class, this function returns False
+      (i.e., not allowed by default).
+
+    Examples
+    --------
+    >>> is_risk_class_allowed([(""standard"", True)], ""standard"")
+    True
+    >>> is_risk_class_allowed([(""standard"", True)], ""substandard"")
+    False
+    >>> is_risk_class_allowed([(""standard"", True), (""standard"", False)], ""standard"")
+    False
+    """"""
+    last_match: Optional[bool] = None
+    for cls, allowed in rules:
+        if cls == risk_class:
+            last_match = allowed
+
+    # Default to False if no rule matched
+    return bool(last_match) if last_match is not None else False
+```"
+T11,1,True,False,True,0,recovered,[],False,"```python
+from typing import List, Tuple
+
+def merge_coverage_periods(periods: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    """"""
+    Merge overlapping endorsement/coverage periods.
+
+    Assumptions (common in date-range handling unless specified otherwise):
+      - Periods are [start, end] inclusive on both ends.
+      - ""Overlapping"" means periods share at least one point:
+          (1,4) and (2,6)  -> merge to (1,6)
+      - Periods that only touch at a boundary (e.g., (1,4) and (5,7))
+        are NOT merged because they do not overlap.
+
+    If you need touching intervals merged as well, change the
+    overlap condition from `current_start <= last_end` to
+    `current_start <= last_end + 1`.
+
+    :param periods: List of (start, end) tuples, where start <= end.
+    :return: New list of merged (start, end) tuples, sorted by start.
+    """"""
+    if not periods:
+        return []
+
+    # Sort by start (and end as tie-breaker for stability)
+    periods_sorted = sorted(periods, key=lambda p: (p[0], p[1]))
+
+    merged: List[Tuple[int, int]] = []
+    cur_start, cur_end = periods_sorted[0]
+
+    for start, end in periods_sorted[1:]:
+        # Overlap if the new range starts before or at the current end
+        if start <= cur_end:
+            # Extend the current merged range
+            if end > cur_end:
+                cur_end = end
+        else:
+            # No overlap; push previous and start new
+            merged.append((cur_start, cur_end))
+            cur_start, cur_end = "
+T12,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from typing import Iterable, List, Any, Callable, Tuple
+
+
+class ClaimProcessingError(Exception):
+    """"""Raised when a single claim fails during processing.""""""
+    def __init__(self, claim: Any, original_exception: Exception):
+        self.claim = claim
+        self.original_exception = original_exception
+        msg = f""Failed to process claim {repr(claim)}: {original_exception}""
+        super().__init__(msg)
+
+
+def process_single_claim(claim: Any) -> Any:
+    """"""
+    Placeholder for single-claim processing logic.
+
+    Replace this with the real implementation that:
+      - validates the claim
+      - applies business rules
+      - persists results
+      - etc.
+
+    For demonstration, this function just echoes the claim.
+    """"""
+    # Example of something that might fail:
+    # if not isinstance(claim, dict) or ""id"" not in claim:
+    #     raise ValueError(""Invalid claim structure"")
+    return claim
+
+
+def process_claims_batch(
+    claims: Iterable[Any],
+    process_fn: Callable[[Any], Any] = process_single_claim,
+) -> Tuple[List[Any], List[ClaimProcessingError]]:
+    """"""
+    Process a batch of claims such that a failure in one claim does NOT abort the batch.
+
+    Args:
+        claims: An iterable of claim objects to process.
+        process_fn: A callable that processes a single claim. It should raise
+                    an exception on failure. Defaults to `process_single_claim`.
+
+    Returns:
+        (successful_results, errors)
+        successful_results: list of "
+T13,1,True,False,False,0,no_clarification_sought,[],False,"```python
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+
+
+class PolicyType(str, Enum):
+    AUTO = ""auto""
+    HOME = ""home""
+    RENTERS = ""renters""
+    LIFE = ""life""
+    HEALTH = ""health""
+    UMBRELLA = ""umbrella""
+    OTHER = ""other""
+
+
+@dataclass(frozen=True)
+class PolicyContext:
+    state: str  # 2-letter postal abbreviation, e.g. ""CA""
+    policy_type: PolicyType
+    # Placeholder for potential future dimensions (e.g., payment_frequency, commercial/personal, etc.)
+
+
+# Default, conservative fallbacks (can be revised once legal provides the matrix)
+# These are intentionally simple and centralized so they can be replaced with a
+# data-driven table later without touching call sites.
+_DEFAULT_GRACE_DAYS_BY_POLICY: dict[PolicyType, int] = {
+    PolicyType.AUTO: 10,
+    PolicyType.HOME: 15,
+    PolicyType.RENTERS: 10,
+    PolicyType.LIFE: 31,     # common industry default for life policies
+    PolicyType.HEALTH: 30,   # common industry default for health policies
+    PolicyType.UMBRELLA: 10,
+    PolicyType.OTHER: 10,
+}
+
+# State-specific overrides where we want to be *more* generous than the default.
+# The intent is to bias in favor of the policyholder in ambiguous cases.
+_STATE_OVERRIDES: dict[str, dict[PolicyType, int]] = {
+    # Examples only; these are not guaranteed to reflect any particular statute.
+    ""CA"": {
+        PolicyType.AUTO: 15,
+        PolicyType.HOME: 20,
+    },
+    ""NY"": {
+        PolicyType.AUTO: 15,
+        PolicyTyp"

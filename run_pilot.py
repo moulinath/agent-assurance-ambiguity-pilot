@@ -468,21 +468,25 @@ def _print_decision_quality_summary(rows: List[dict]):
     print("   headline result would be bad_merge concentrated at L0/L1 and largely")
     print("   absent at L3.)")
 
-    print("\n--- bad_merge rate by independence level (all rows; the three decision rules")
-    print("    are NOT independent samples -- see the per-decision table below) ---")
+    print("\n--- bad_merge rate by independence level, as a share of WRONG-code rows (the only")
+    print("    rows where a bad_merge can occur; the three decision rules are NOT independent")
+    print("    samples -- see the per-decision table below) ---")
     by_level: Dict[str, Counter] = {}
     for r in rows:
         by_level.setdefault(r["independence_level"], Counter())[r["decision_quality"]] += 1
     for level, counts in by_level.items():
-        total = sum(counts.values())
+        # bad_merge and safe_hold/correct_reject are the only outcomes on wrong code
+        wrong = counts.get("bad_merge", 0) + counts.get("safe_hold", 0) + counts.get("correct_reject", 0)
         bad = counts.get("bad_merge", 0)
-        print(f"  {level:45s}: bad_merge {bad}/{total} ({bad/total:.0%})" if total else f"  {level}: n/a")
+        print(f"  {level:45s}: bad_merge {bad}/{wrong} wrong-code rows ({bad/wrong:.0%})" if wrong
+              else f"  {level}: no wrong-code rows")
 
     # One decision per (task, repeat, level, chain_length) using the majority
     # rule. This is the honest unit of analysis: the three rules re-score the
     # SAME validator verdicts, so counting all three triples-counts every case.
     print("\n--- Per-decision table (majority rule only; one row = one task-run) ---")
-    print("    n = decisions; bad_merge shown with 95% Wilson interval; 'wrong code' = share of")
+    print("    n = decisions; bad_merge shown as a share of wrong-code decisions with a 95% Wilson")
+    print("    interval; 'wrong code' = share of")
     print("    runs where the implementer's code failed the oracle (no wrong code, no bad_merge).")
     groups: Dict[tuple, list] = {}
     for r in rows:
@@ -493,12 +497,12 @@ def _print_decision_quality_summary(rows: List[dict]):
         n = len(rs)
         c = Counter(r["decision_quality"] for r in rs)
         bad = c.get("bad_merge", 0)
-        lo, hi = wilson_interval(bad, n)
         wrong = sum(1 for r in rs if not r["ground_truth_correct"])
+        lo, hi = wilson_interval(bad, wrong) if wrong else (0.0, 0.0)
         flagged = sum(1 for r in rs if r.get("ambiguity_flagged"))
         despite = sum(1 for r in rs if r.get("accepted_despite_flag"))
-        print(f"  {level.split('_')[0]} chain={chain}: n={n}  wrong code {wrong}/{n}  bad_merge {bad}/{n} "
-              f"({bad/n:.0%}, 95% CI {lo:.0%}-{hi:.0%})  "
+        print(f"  {level.split('_')[0]} chain={chain}: n={n}  wrong code {wrong}/{n}  bad_merge {bad}/{wrong} wrong-code "
+              f"({(bad/wrong if wrong else 0):.0%}, 95% CI {lo:.0%}-{hi:.0%})  "
               f"safe_hold {c.get('safe_hold',0)}  correct_reject {c.get('correct_reject',0)}  "
               f"correct_accept {c.get('correct_accept',0)}  costly_hold {c.get('costly_hold',0)}  "
               f"false_reject {c.get('false_reject',0)}")

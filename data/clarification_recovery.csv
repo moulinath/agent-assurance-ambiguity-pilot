@@ -1,14 +1,898 @@
-task_id,unambiguous_correct,ambiguous_no_clarification_correct,ambiguous_with_clarification_correct,num_questions_asked,failure_mode,transcript
-T01,True,False,True,1,recovered,"[('What rounding mode should be used?', ""Round-half-up (standard rounding), not banker's rounding. If a premium works out to exactly $x.xx5, it rounds up to the next cent, same as how a cashier would round a bill."")]"
-T02,False,False,False,0,no_clarification_sought,[]
-T03,False,False,False,0,no_clarification_sought,[]
-T04,True,False,True,1,recovered,"[(""Does '3 retries' mean 3 total attempts or 3 plus the original?"", '3 retries means the original submission attempt plus 3 more tries -- 4 total attempts before giving up and surfacing the error to the adjuster.')]"
-T05,False,False,False,1,wrong_question,"[('What programming language should I use?', None)]"
-T06,False,False,False,0,no_clarification_sought,[]
-T07,False,False,False,0,no_clarification_sought,[]
-T08,True,False,False,1,answer_not_applied,"[('Should re-running overwrite the existing quote?', ""No -- if a quote already exists for that application ID, return the existing quote unchanged. Don't overwrite it, even if the new premium calculation differs slightly. We don't want quotes silently changing underneath an agent who already showed a number to the customer."")]"
-T09,False,False,False,0,no_clarification_sought,[]
-T10,False,False,False,0,no_clarification_sought,[]
-T11,False,False,False,0,no_clarification_sought,[]
-T12,False,False,False,0,no_clarification_sought,[]
-T13,True,False,False,1,unresolved_intent,"[('How many days should the grace period be?', ""UNRESOLVED: Honestly we don't have a final number yet -- legal is still finalizing the state-by-state grace period matrix. Use your best judgment for now; we'll need to revisit this once compliance signs off."")]"
+task_id,repeat,unambiguous_correct,ambiguous_no_clarification_correct,ambiguous_with_clarification_correct,num_questions_asked,unambiguous_failure_kind,noclar_failure_kind,clar_failure_kind,failure_mode,transcript,asked_but_unparsed,final_raw_response
+T01,1,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+from decimal import Decimal, ROUND_HALF_UP, getcontext
+
+# Set a sufficient precision for intermediate sums
+getcontext().prec = 28
+
+def total_premium(premiums: List[float]) -> float:
+    """"""
+    Total up the premium line items and round to the nearest cent
+    using standard ""round half up"" monetary rounding.
+
+    Args:
+        premiums: List of premium amounts as floats.
+
+    Returns:
+        The total premium rounded to 2 decimal places as a float.
+    """"""
+    # Convert floats to Decimals via string to avoid binary float artifacts
+    total = sum(Decimal(str(p)) for p in premiums)
+    rounded = total.quantize(Decimal(""0.01""), rounding=ROUND_HALF_UP)
+    return float(rounded)
+```"
+T01,2,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+from decimal import Decimal, ROUND_HALF_UP, getcontext
+
+# Set a reasonable precision to safely handle summation before rounding.
+# 28 is Decimal's default and is more than enough for currency sums.
+getcontext().prec = 28
+
+def total_premium(premiums: List[float]) -> float:
+    """"""
+    Sum premium line items and round to the nearest cent using
+    standard ""customer bill"" rules (round half up).
+
+    Args:
+        premiums: A list of premium amounts as floats.
+
+    Returns:
+        The total premium rounded to two decimal places, as a float.
+    """"""
+    # Convert floats to Decimal via string to avoid binary float artifacts
+    total = sum(Decimal(str(p)) for p in premiums)
+
+    # Round to 2 decimal places using standard half-up rounding
+    rounded_total = total.quantize(Decimal(""0.01""), rounding=ROUND_HALF_UP)
+
+    # Return as float because the signature requires float
+    return float(rounded_total)
+```"
+T01,3,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+from decimal import Decimal, ROUND_HALF_UP, getcontext
+
+# Set a reasonable precision for monetary calculations
+getcontext().prec = 28
+
+def total_premium(premiums: List[float]) -> float:
+    """"""
+    Sum premium line items and round to the nearest cent using
+    typical customer billing rules (round half up).
+    """"""
+    total = Decimal('0')
+    for p in premiums:
+        # Convert float to Decimal via string to avoid binary float issues
+        total += Decimal(str(p))
+
+    # Round to 2 decimal places using standard ""round half up"" behavior
+    rounded_total = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    return float(rounded_total)
+```"
+T02,1,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Return True if the two coverage periods [a_start, a_end] and [b_start, b_end]
+    overlap by at least one day, assuming inclusive endpoints.
+
+    Overlap logic (inclusive ranges):
+        [a_start, a_end] overlaps [b_start, b_end] iff:
+            a_start <= b_end and b_start <= a_end
+    """"""
+    if a_start is None or a_end is None or b_start is None or b_end is None:
+        raise ValueError(""coverage_overlaps expects non-None start and end values"")
+
+    # Normalize so that start <= end for each interval
+    if a_start > a_end:
+        a_start, a_end = a_end, a_start
+    if b_start > b_end:
+        b_start, b_end = b_end, b_start
+
+    return a_start <= b_end and b_start <= a_end
+```"
+T02,2,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Return True if two coverage periods [a_start, a_end] and [b_start, b_end]
+    overlap by at least one day, otherwise False.
+
+    Assumes that starts/ends are comparable (e.g., dates or ints) and that
+    start <= end for each policy.
+
+    Overlap is defined as sharing any day in common.
+    Adjacent but non-overlapping periods (e.g., 1-5 and 6-10) return False.
+    """"""
+    # Two closed intervals [a_start, a_end] and [b_start, b_end] overlap iff:
+    # max(a_start, b_start) <= min(a_end, b_end)
+    return max(a_start, b_start) <= min(a_end, b_end)
+```"
+T02,3,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+def coverage_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """"""
+    Determine whether two coverage periods overlap.
+
+    Assumptions:
+    - The date values are comparable (e.g., ints, dates, datetimes).
+    - Coverage is inclusive of both start and end dates.
+    - Returns True if there is at least one day (or instant) that is covered by both policies.
+
+    Overlap condition for inclusive ranges [a_start, a_end] and [b_start, b_end]:
+        They overlap iff a_start <= b_end and b_start <= a_end.
+    """"""
+    # Basic guard: if any input is None, we can't determine overlap.
+    if a_start is None or a_end is None or b_start is None or b_end is None:
+        return False
+
+    # Normalize ordering within each interval, in case start/end are reversed.
+    if a_start > a_end:
+        a_start, a_end = a_end, a_start
+    if b_start > b_end:
+        b_start, b_end = b_end, b_start
+
+    return a_start <= b_end and b_start <= a_end
+```"
+T03,1,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+
+def dedupe_beneficiaries(names: List[str]) -> List[str]:
+    """"""
+    Deduplicate beneficiary names, treating case differences as duplicates
+    while preserving the first-seen original casing and order.
+
+    Example:
+        [""John Smith"", ""john smith"", ""JOHN SMITH"", ""Jane Doe""]
+        -> [""John Smith"", ""Jane Doe""]
+    """"""
+    seen_normalized = set()
+    result: List[str] = []
+
+    for name in names:
+        # Normalize for comparison: case-insensitive; strip surrounding whitespace.
+        # We keep the original string in the output, only the normalized form
+        # is used for duplicate checking.
+        normalized = name.strip().lower()
+
+        if normalized not in seen_normalized:
+            seen_normalized.add(normalized)
+            result.append(name)
+
+    return result
+```"
+T03,2,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+
+
+def dedupe_beneficiaries(names: List[str]) -> List[str]:
+    """"""
+    Remove duplicate beneficiary names from the provided list, treating names
+    that differ only by case as duplicates. The first occurrence (by original
+    order) is preserved.
+
+    Example:
+        [""John Smith"", ""john smith"", ""Alice"", ""ALICE"", ""Bob""] ->
+        [""John Smith"", ""Alice"", ""Bob""]
+    """"""
+    seen = set()
+    result: List[str] = []
+
+    for name in names:
+        # Normalize for deduplication: case-insensitive
+        key = name.lower()
+        if key not in seen:
+            seen.add(key)
+            result.append(name)
+
+    return result
+```"
+T03,3,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+
+
+def dedupe_beneficiaries(names: List[str]) -> List[str]:
+    """"""
+    Remove duplicate beneficiary names from the given list, treating names as
+    case-insensitive for the purpose of deduplication, while preserving the
+    first occurrence's original formatting and the original order.
+
+    Examples:
+        [""John Smith"", ""john smith"", ""JOHN SMITH"", ""Jane Doe""]
+        -> [""John Smith"", ""Jane Doe""]
+    """"""
+    seen = set()
+    result: List[str] = []
+
+    for name in names:
+        key = name.lower()
+        if key not in seen:
+            seen.add(key)
+            result.append(name)
+
+    return result
+```"
+T04,1,True,False,True,0,pass,behavior,pass,correct_without_asking,[],False,"```python
+def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to submit using the provided submit_fn, retrying on failure.
+
+    Args:
+        submit_fn (callable): A no-arg function that performs the carrier
+            submission. It should raise an exception on failure and return
+            a value on success.
+        max_retries (int): Maximum number of retries after the initial attempt.
+            For example, max_retries=3 means up to 4 total attempts
+            (1 initial + 3 retries).
+
+    Returns:
+        The result of submit_fn() if it eventually succeeds.
+
+    Raises:
+        The last exception raised by submit_fn if all attempts fail.
+        Callers can interpret this as ""flag it for the adjuster"".
+    """"""
+    # We treat ""up to max_retries"" as the number of additional attempts
+    # after the first try.
+    attempts = 0
+    last_exc = None
+
+    # Total attempts = 1 initial + max_retries
+    total_attempts = 1 + (max_retries if max_retries is not None else 0)
+
+    while attempts < total_attempts:
+        try:
+            return submit_fn()
+        except Exception as exc:  # pylint: disable=broad-except
+            last_exc = exc
+            attempts += 1
+            if attempts >= total_attempts:
+                # We've exhausted all attempts; propagate the last failure.
+                raise last_exc
+            # Otherwise, loop and try again.
+```"
+T04,2,True,False,True,0,pass,behavior,pass,correct_without_asking,[],False,"```python
+def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Call the given carrier submission function with retries.
+
+    Parameters
+    ----------
+    submit_fn : callable
+        A callable that performs the carrier submission. It is expected to
+        raise an exception on failure and return normally on success.
+    max_retries : int, optional
+        Maximum number of *additional* retry attempts after the initial call.
+        For example, max_retries=3 means up to 4 total attempts
+        (1 initial + 3 retries). If max_retries <= 0, only one attempt is made.
+
+    Returns
+    -------
+    Any
+        Whatever `submit_fn` returns on success.
+
+    Raises
+    ------
+    Exception
+        The last exception raised by `submit_fn` if all attempts fail.
+        Callers should interpret this as ""flag it for the adjuster"".
+    """"""
+    # Normalize negative retries to zero extra attempts
+    if max_retries < 0:
+        max_retries = 0
+
+    attempts = 0
+    last_exc = None
+
+    # Total attempts = 1 initial + max_retries additional attempts
+    total_attempts = 1 + max_retries
+
+    while attempts < total_attempts:
+        try:
+            return submit_fn()
+        except Exception as exc:  # noqa: BLE001 - intentional broad catch for retry logic
+            attempts += 1
+            last_exc = exc
+            if attempts >= total_attempts:
+                # Exhausted all attempts; propagate the last failure so
+                # upstream can ""flag it for the adjuster"".
+   "
+T04,3,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+def submit_with_retry(submit_fn, max_retries=3):
+    """"""
+    Attempt to submit via the provided submit_fn, retrying on failure.
+
+    :param submit_fn: A callable that performs the submission. It should
+                      either return a ""success"" result or raise an exception
+                      on failure.
+    :param max_retries: Maximum number of attempts (including the first).
+                        Defaults to 3.
+    :return: The successful result of submit_fn.
+    :raises: The last exception encountered if all retries fail.
+    """"""
+
+    if max_retries < 1:
+        raise ValueError(""max_retries must be at least 1"")
+
+    attempt = 0
+    last_exc = None
+
+    while attempt < max_retries:
+        try:
+            return submit_fn()
+        except Exception as exc:  # noqa: BLE001 (broad catch intentional for retry)
+            last_exc = exc
+            attempt += 1
+            # If we've exhausted all attempts, re-raise to signal failure
+            if attempt >= max_retries:
+                # In the broader system, this is where you'd ""flag it for the adjuster""
+                # (e.g., log, enqueue a task, or update state). Here we just re-raise.
+                raise
+
+    # This point should be unreachable, but kept for clarity.
+    if last_exc is not None:
+        raise last_exc
+```"
+T05,1,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity (descending). For ties in severity,
+    sort alphabetically by claim ID (ascending).
+
+    :param claims: List of (claim_id, severity) tuples
+    :return: List of claim_ids ordered by ranking
+    """"""
+    # Sort by:
+    #   1) severity descending  -> use -severity
+    #   2) claim_id ascending   -> normal string comparison
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]
+```"
+T05,2,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity, most severe first.
+    For ties in severity, sort alphabetically by claim ID.
+
+    :param claims: List of (claim_id, severity) tuples
+    :return: List of claim_ids ordered by ranking
+    """"""
+    # Sort by:
+    #   1) severity descending  -> use -severity
+    #   2) claim_id ascending   -> default string ordering
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]
+```"
+T05,3,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+from typing import List, Tuple
+
+def rank_claims(claims: List[Tuple[str, int]]) -> List[str]:
+    """"""
+    Rank claims by severity (most severe first).
+    For ties in severity, sort alphabetically by claim ID.
+
+    :param claims: List of tuples (claim_id, severity)
+    :return: List of claim IDs ordered by ranking
+    """"""
+    # Sort by:
+    #  - primary key: severity descending (higher severity first)
+    #  - secondary key: claim_id ascending (alphabetical)
+    sorted_claims = sorted(claims, key=lambda c: (-c[1], c[0]))
+    return [claim_id for claim_id, _ in sorted_claims]
+```"
+T06,1,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List, Any
+
+def paginate_claims(claims: List[Any], page: int, page_size: int) -> List[Any]:
+    """"""
+    Return a slice of `claims` corresponding to the requested page.
+
+    Pagination details:
+    - Pages are 1-based (page=1 returns the first `page_size` items).
+    - If `page` is less than 1, treat it as 1.
+    - If `page_size` is less than 1, return an empty list.
+    - If the computed start index is beyond the end of `claims`, return an empty list.
+    """"""
+    if page_size < 1:
+        return []
+
+    if page < 1:
+        page = 1
+
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    if start >= len(claims):
+        return []
+
+    return claims[start:end]
+```"
+T06,2,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+
+def paginate_claims(claims: List, page: int, page_size: int) -> List:
+    """"""
+    Return a slice of `claims` corresponding to the requested page, with pages starting at 1.
+
+    :param claims: Full list of claims.
+    :param page: 1-based page index (page 1 is the first page).
+    :param page_size: Number of items per page.
+    :return: Sub-list of claims for the given page. Returns an empty list if
+             page or page_size is invalid or if the page is beyond the end.
+    """"""
+    if page < 1 or page_size <= 0:
+        return []
+
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    if start >= len(claims):
+        return []
+
+    return claims[start:end]
+```"
+T06,3,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List
+
+def paginate_claims(claims: List, page: int, page_size: int) -> List:
+    """"""
+    Return a slice of `claims` for the given 1-based page number and page size.
+
+    :param claims: Full list of claims.
+    :param page: 1-based page number. Pages <= 0 yield an empty list.
+    :param page_size: Number of items per page. Non-positive values yield an empty list.
+    :return: Sublist of claims corresponding to the requested page.
+    """"""
+    if page <= 0 or page_size <= 0:
+        return []
+
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    # Python slicing handles start >= len(claims) by returning []
+    return claims[start:end]
+```"
+T08,1,True,False,True,0,pass,behavior,pass,correct_without_asking,[],False,"```python
+def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently record or retrieve a quote for an application.
+
+    - If a quote for `application_id` does not exist in `store`, it is created
+      with the given `premium` and that value is returned.
+    - If a quote already exists:
+        * If the existing premium matches the passed `premium`, simply return it.
+        * If the existing premium differs, keep and return the original premium
+          (do not overwrite), so that re-running with a different value does not
+          mutate previously computed quotes.
+
+    This makes the function safe to call multiple times for the same
+    application without causing inconsistencies.
+    """"""
+    if application_id in store:
+        # Idempotent behavior: do not change existing premium, just return it.
+        return float(store[application_id])
+
+    # No existing quote: create it.
+    store[application_id] = float(premium)
+    return float(premium)
+```"
+T08,2,True,False,True,0,pass,behavior,pass,correct_without_asking,[],False,"```python
+def get_or_create_quote(store: dict, application_id: str, premium: float) -> float:
+    """"""
+    Idempotently get or create a quote for an application.
+
+    - If a quote for `application_id` already exists in `store`, return it.
+    - If it does not exist, create it in `store` with the provided `premium`
+      and return that value.
+    - Re-running this function for the same `application_id` will not change
+      an existing quote.
+
+    Args:
+        store: A dict-like object used as storage. Quotes are stored by
+               application_id as keys and premium (float) as values.
+        application_id: Unique identifier for the application.
+        premium: The premium to use if a new quote must be created.
+
+    Returns:
+        The premium associated with `application_id`.
+    """"""
+    # If we've already created a quote for this application, return it
+    if application_id in store:
+        return store[application_id]
+
+    # Otherwise, create and store a new quote with the provided premium
+    store[application_id] = float(premium)
+    return store[application_id]
+```"
+T08,3,True,False,True,0,pass,behavior,pass,correct_without_asking,[],False,"```python
+from typing import Dict
+
+
+def get_or_create_quote(store: Dict[str, float], application_id: str, premium: float) -> float:
+    """"""
+    Idempotently get or create a quote for the given application.
+
+    - If a quote already exists for `application_id` in `store`,
+      return the existing premium without modification.
+    - If no quote exists, create it with the provided `premium`
+      and return that value.
+
+    This ensures that re-running the quote calculation for the same
+    application doesn't change the stored value or cause errors.
+    """"""
+    if application_id in store:
+        return store[application_id]
+
+    store[application_id] = premium
+    return premium
+```"
+T09,1,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if `now` is strictly after `deadline`, otherwise False.
+
+    Both `deadline` and `now` are expected to be naive (timezone-unaware)
+    datetime objects, consistent with existing call sites and examples.
+    """"""
+    return now > deadline
+```"
+T09,2,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if `now` is strictly after `deadline`, else False.
+
+    Both `deadline` and `now` are expected to be naive datetimes in the same
+    implicit timezone (per existing usage in the codebase). No timezone
+    conversions are performed.
+
+    A claim filed exactly at the deadline (now == deadline) is considered
+    on time, not past the deadline.
+    """"""
+    return now > deadline
+```"
+T09,3,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+from datetime import datetime
+
+def is_past_deadline(deadline: datetime, now: datetime) -> bool:
+    """"""
+    Return True if `now` is strictly after `deadline`, False otherwise.
+
+    Both `deadline` and `now` are expected to be naive datetimes, as per the
+    existing usage example. The comparison is a straightforward > check.
+    """"""
+    return now > deadline
+```"
+T11,1,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List, Tuple
+
+def merge_coverage_periods(periods: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    """"""
+    Merge overlapping (and touching) coverage periods.
+
+    periods: list of (start, end) integer tuples, where start <= end.
+    Returns a new list of merged periods sorted by start.
+
+    Behavior:
+    - Overlapping periods are merged: (1, 4), (2, 6) -> (1, 6)
+    - Touching periods are also merged: (1, 4), (4, 6) -> (1, 6)
+    """"""
+
+    if not periods:
+        return []
+
+    # Sort by start, then end
+    periods_sorted = sorted(periods, key=lambda x: (x[0], x[1]))
+
+    merged: List[Tuple[int, int]] = []
+    cur_start, cur_end = periods_sorted[0]
+
+    for start, end in periods_sorted[1:]:
+        if start <= cur_end:  # overlaps or touches
+            # Extend the current merged interval if needed
+            if end > cur_end:
+                cur_end = end
+        else:
+            # No overlap; push current and start a new one
+            merged.append((cur_start, cur_end))
+            cur_start, cur_end = start, end
+
+    # Append the last interval
+    merged.append((cur_start, cur_end))
+
+    return merged
+```"
+T11,2,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List, Tuple
+
+def merge_coverage_periods(periods: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    """"""
+    Merge overlapping coverage periods.
+
+    Given a list of (start, end) integer tuples, returns a list where
+    overlapping intervals are merged. Periods are treated as closed intervals
+    [start, end]; two periods merge if they overlap by any amount:
+        (a_start <= b_end) and (b_start <= a_end)
+
+    Touching only at a boundary (e.g., (1,4) and (5,7)) is NOT merged since
+    there is no overlap (4 < 5).
+
+    The result is sorted by start time and contains non-overlapping intervals.
+
+    :param periods: List of (start, end) integer tuples
+    :return: List of merged (start, end) tuples
+    """"""
+    if not periods:
+        return []
+
+    # Sort by start time, then by end time
+    periods_sorted = sorted(periods, key=lambda x: (x[0], x[1]))
+    merged: List[Tuple[int, int]] = []
+
+    current_start, current_end = periods_sorted[0]
+
+    for start, end in periods_sorted[1:]:
+        # Overlap exists if the next start is <= current_end,
+        # interpreting intervals as closed [start, end].
+        if start <= current_end and end >= current_start:
+            # Merge: extend the current interval's end if needed
+            current_end = max(current_end, end)
+        else:
+            # No overlap: push the finished interval and start a new one
+            merged.append((current_start, current_end))
+            current_start, current_end = s"
+T11,3,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List, Tuple
+
+def merge_coverage_periods(periods: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    """"""
+    Merge overlapping coverage periods.
+
+    Given a list of (start, end) integer tuples, returns a new list where
+    all overlapping or touching intervals are merged. Assumes start <= end
+    for each interval.
+
+    Example:
+        [(1, 4), (2, 6)] -> [(1, 6)]
+        [(1, 3), (3, 5)] -> [(1, 5)]  # touching boundaries are merged
+    """"""
+    if not periods:
+        return []
+
+    # Sort by start time, then by end time for deterministic behavior
+    sorted_periods = sorted(periods, key=lambda x: (x[0], x[1]))
+    merged: List[Tuple[int, int]] = []
+
+    cur_start, cur_end = sorted_periods[0]
+
+    for start, end in sorted_periods[1:]:
+        # If the current interval overlaps or touches the next one,
+        # extend the current interval.
+        if start <= cur_end:
+            if end > cur_end:
+                cur_end = end
+        else:
+            # No overlap; push current and start a new one.
+            merged.append((cur_start, cur_end))
+            cur_start, cur_end = start, end
+
+    # Append the final interval
+    merged.append((cur_start, cur_end))
+    return merged
+```"
+T12,1,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List, Dict, Any, Callable, Tuple
+
+def process_claims_batch(items: List[Any], process_fn: Callable[[Any], Any]) -> Dict[str, List]:
+    """"""
+    Process a batch of claim-like items using the provided processing function.
+
+    Each item is processed independently; an exception on one item will not
+    abort processing of the rest.
+
+    Args:
+        items: A list of items (claims) to process.
+        process_fn: A callable that processes a single item. It may raise
+                    exceptions for invalid/problematic items.
+
+    Returns:
+        Dict with keys:
+            'succeeded': list of items that were processed without error.
+            'failed': list of (item, error_message) tuples for items that
+                      raised exceptions during processing.
+    """"""
+    succeeded: List[Any] = []
+    failed: List[Tuple[Any, str]] = []
+
+    for item in items:
+        try:
+            process_fn(item)
+        except Exception as exc:  # noqa: BLE001 - intentionally broad to isolate bad items
+            failed.append((item, str(exc)))
+        else:
+            succeeded.append(item)
+
+    return {
+        ""succeeded"": succeeded,
+        ""failed"": failed,
+    }
+```"
+T12,2,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import Any, Callable, Dict, List, Tuple
+
+
+def process_claims_batch(items: List[Any], process_fn: Callable[[Any], Any]) -> Dict[str, List]:
+    """"""
+    Process a batch of claim-like items with a provided processing function.
+
+    The function guarantees that an exception raised while processing a single
+    item does not abort processing of the remaining items.
+
+    Args:
+        items: List of items (claims) to be processed.
+        process_fn: Callable that processes a single item. Any exception
+                    raised by this callable will be caught and recorded
+                    as a failure for that item.
+
+    Returns:
+        A dict with the following structure:
+        {
+            'succeeded': [<items that processed without exception>, ...],
+            'failed': [
+                (item, ""<string error message>""),
+                ...
+            ]
+        }
+    """"""
+    succeeded: List[Any] = []
+    failed: List[Tuple[Any, str]] = []
+
+    for item in items:
+        try:
+            process_fn(item)
+            succeeded.append(item)
+        except Exception as exc:  # noqa: BLE001 - intentional broad catch for batch robustness
+            failed.append((item, str(exc)))
+
+    return {
+        ""succeeded"": succeeded,
+        ""failed"": failed,
+    }
+```"
+T12,3,True,True,True,0,pass,pass,pass,not_applicable,[],False,"```python
+from typing import List, Dict, Any, Callable, Tuple
+
+
+def process_claims_batch(items: List, process_fn: Callable[[Any], Any]) -> Dict[str, List]:
+    """"""
+    Process a batch of claim-like items with the provided processing function.
+
+    The function will attempt to process each item independently. If processing
+    an item raises an exception, that item will be recorded in the 'failed'
+    list along with the stringified error message. Successful items will be
+    recorded in the 'succeeded' list.
+
+    Args:
+        items: A list of items (claims) to process.
+        process_fn: A callable that takes a single item and processes it.
+                    Any exceptions it raises will be captured and logged
+                    against that item, without aborting the whole batch.
+
+    Returns:
+        A dictionary with the structure:
+        {
+            'succeeded': [<items that processed without error>, ...],
+            'failed': [(<item>, <error_message>), ...]
+        }
+    """"""
+    succeeded: List[Any] = []
+    failed: List[Tuple[Any, str]] = []
+
+    for item in items:
+        try:
+            process_fn(item)
+            succeeded.append(item)
+        except Exception as exc:  # noqa: BLE001 - we want to catch all to not kill batch
+            failed.append((item, str(exc)))
+
+    return {""succeeded"": succeeded, ""failed"": failed}
+```"
+T13,1,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+def grace_period_days() -> int:
+    """"""
+    Temporary implementation of grace-period days for lapsed policies.
+
+    NOTE:
+        Legal/compliance has not finalized the grace-period matrix
+        (varies by state and policy type). This function currently
+        returns a conservative default intended as a placeholder until
+        the official rules are defined.
+
+    Rationale for default:
+        - A 30-day grace period is a common and conservative industry
+          default for many life/health/auto policies.
+        - Using a single hard-coded value keeps behavior predictable
+          and easy to audit/change once the real matrix is available.
+
+    WARNING:
+        This value MUST be revisited once the grace-period matrix is
+        finalized by legal/compliance. When updating, consider:
+          - Varying by state
+          - Varying by policy type
+          - Effective dates / grandfathering behavior
+
+    Returns:
+        int: Number of grace period days to apply to a lapsed policy.
+    """"""
+    # Placeholder implementation: industry-common, conservative default.
+    # TODO(legal/compliance): Replace with state- and policy-type-specific matrix.
+    return 30
+```"
+T13,2,True,False,True,0,pass,behavior,pass,correct_without_asking,[],False,"```python
+def grace_period_days() -> int:
+    """"""
+    Temporary implementation of grace period determination.
+
+    Legal/compliance has not yet finalized the state/policy-type matrix, and
+    this function has a fixed signature (no parameters), so we cannot vary
+    behavior by jurisdiction or product at this time.
+
+    Design choice:
+    - Return a conservative, commonly used life/health insurance grace period
+      of 31 days.
+    - This errs on the side of *not* prematurely treating a policy as lapsed
+      from a system perspective, which is safer legally and operationally
+      while the formal matrix is pending.
+    - Once the matrix is finalized, this function will likely become a
+      dispatcher to a more detailed configuration keyed by state and policy
+      type (which may then be inferred from broader application context or
+      require a signature change).
+
+    Returns:
+        int: Number of grace period days to allow before treating a policy as
+             lapsed for internal processing purposes.
+    """"""
+    # NOTE FOR FUTURE MAINTAINERS:
+    # ----------------------------
+    # - This value is intentionally conservative.
+    # - When compliance provides the finalized rules, replace this constant
+    #   with logic that:
+    #     * consults configuration (e.g., database or config files),
+    #     * possibly takes jurisdiction/policy-type from context if the
+    #       signature is allowed to change, or
+    #     * uses dependency injection to access a rule"
+T13,3,True,False,False,0,pass,behavior,behavior,no_clarification_sought,[],False,"```python
+def grace_period_days() -> int:
+    """"""
+    Temporary implementation for policy grace period.
+
+    Legal/compliance has not yet finalized the state x policy-type matrix for
+    grace periods. For now, we provide a conservative, single-value default
+    so that business logic can proceed without breaking existing call sites.
+
+    Rationale for default:
+    - 30 days is a commonly used grace period across many insurance and
+      financial products.
+    - It is long enough to be conservative from a customer-protection
+      standpoint, yet not excessively long for risk exposure.
+    - This value is a placeholder and is expected to be replaced once the
+      proper matrix (by state and policy type) is finalized.
+
+    NOTE: When requirements are finalized, this function will likely need
+    to accept parameters (e.g., state, policy_type) or be replaced by a
+    more context-aware component.
+
+    Returns:
+        int: Number of days in the grace period (currently a fixed default).
+    """"""
+    # TODO(legal-compliance): Replace with state- and policy-type-specific
+    # logic once the grace-period matrix is finalized.
+    return 30
+```"

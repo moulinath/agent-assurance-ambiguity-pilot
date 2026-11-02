@@ -9,11 +9,18 @@ authors:
     email: moulinath@yahoo.com
 repository-code: "https://github.com/moulinath/agent-assurance-ambiguity-pilot"
 license: MIT
-version: "0.1.0"
-date-released: "2026-10-08"
+version: "1.1.0"
+date-released: "2026-11-02"
 keywords:
   - agentic software engineering
   - LLM-as-judge
   - specification ambiguity
   - assurance
   - validator independence
+references:
+  - type: article
+    title: "When Reviewers Agree on the Wrong Reading: A Pilot Study of Validator Independence and Specification Ambiguity in the Assurance of Agent-Written Code"
+    authors:
+      - family-names: Chakrabarty
+        given-names: Moulinath
+    doi: "10.5281/zenodo.23234730"
